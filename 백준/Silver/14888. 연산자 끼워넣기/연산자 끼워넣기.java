@@ -2,14 +2,11 @@ import java.io.*;
 
 public class Main {
 
-    private static int max = Integer.MIN_VALUE;
+    public static int max = Integer.MIN_VALUE;
 
-    private static int min = Integer.MAX_VALUE;
+    public static int min = Integer.MAX_VALUE;
 
-    private static void bt(int depth, int[] num, int N, int cal, int[] operator, int oper) {
-        if (operator[oper] == 0) { //해당 연산자를 모두 사용했다면 -> pruning
-            return;
-        }
+    public static void bt(int depth, int[] num, int N, int cal, int[] operator, int oper) {
 
         switch (oper) { //연산자에 따라 계산
             case 0:
@@ -51,6 +48,9 @@ public class Main {
             int[] depthOperator = new int[4];
             System.arraycopy(operator, 0, depthOperator, 0, 4);
 
+            if (depthOperator[i] == 0) {
+                continue;
+            }
             bt(depth + 1, num, N, cal, depthOperator, i);
         }
 
@@ -73,6 +73,9 @@ public class Main {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) { //oper 연산자 개수 초기화
                 operator[j] = Integer.parseInt(inputOper[j]);
+            }
+            if (operator[i] == 0) {
+                continue;
             }
             bt(1, num, N, cal, operator, i); //4개의 연산자에 대해 모두 돌려야 함
         }
