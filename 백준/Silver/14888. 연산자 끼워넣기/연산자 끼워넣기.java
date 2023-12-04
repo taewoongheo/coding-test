@@ -44,14 +44,12 @@ public class Main {
         }
 
         for (int i = 0; i < 4; i++) {
-            // 복사할 배열을 미리 선언
-            int[] depthOperator = new int[4];
-            System.arraycopy(operator, 0, depthOperator, 0, 4);
-
-            if (depthOperator[i] == 0) {
+            
+            if (operator[i] == 0) {
                 continue;
             }
-            bt(depth + 1, num, N, cal, depthOperator, i);
+            bt(depth + 1, num, N, cal, operator, i);
+            operator[i]++;
         }
 
     }
