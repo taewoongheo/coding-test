@@ -3,55 +3,50 @@ import java.io.*;
 public class Main {
 
     public static int max = Integer.MIN_VALUE;
-
     public static int min = Integer.MAX_VALUE;
 
-    public static void bt(int depth, int[] num, int N, int cal, int[] operator, int oper) {
-
-        switch (oper) { //연산자에 따라 계산
-            case 0:
-                // +
-                cal += num[depth];
-                break;
-            case 1:
-                // -
-                cal -= num[depth];
-                break;
-            case 2:
-                // x
-                cal *= num[depth];
-                break;
-            case 3:
-                // %
-                int inputNum = num[depth];
-                if (inputNum < 0) {
-                    cal = cal / (inputNum * -1);
-                    cal *= -1;
-                } else {
-                    cal = cal / inputNum;
-                }
-                break;
-        }
-        operator[oper]--;
-
-        if(depth == N-1) { //끝 도달. max와 min이랑 비교해서 최댓값 최솟값 찾기
+    public static void bt(int depth, int[] num, int N, int cal, int[] operator) {
+        if (depth == N) { // 끝 도달. max와 min이랑 비교해서 최댓값 최솟값 찾기
             if (cal > max) {
                 max = cal;
             }
             if (cal < min) {
                 min = cal;
             }
+            return;
         }
 
         for (int i = 0; i < 4; i++) {
-            
-            if (operator[i] == 0) {
-                continue;
-            }
-            bt(depth + 1, num, N, cal, operator, i);
-            operator[i]++;
-        }
+            if (operator[i] > 0) {
+                int temp = cal; // 현재 연산 결과 임시 저장
+                switch (i) { // 연산자에 따라 계산
+                    case 0:
+                        cal += num[depth];
+                        break;
+                    case 1:
+                        cal -= num[depth];
+                        break;
+                    case 2:
+                        cal *= num[depth];
+                        break;
+                    case 3:
+                        int inputNum = num[depth];
+                        if (inputNum < 0) {
+                            cal = cal / (inputNum * -1);
+                            cal *= -1;
+                        } else {
+                            cal = cal / inputNum;
+                        }
+                        break;
+                }
 
+                operator[i]--;
+                bt(depth + 1, num, N, cal, operator);
+                // 백트래킹: 재귀 호출 이후 원래의 연산 결과로 복구
+                cal = temp;
+                operator[i]++;
+            }
+        }
     }
 
     public static void main(String[] args) throws IOException {
@@ -69,17 +64,13 @@ public class Main {
 
         int cal = num[0];
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) { //oper 연산자 개수 초기화
-                operator[j] = Integer.parseInt(inputOper[j]);
-            }
-            if (operator[i] == 0) {
-                continue;
-            }
-            bt(1, num, N, cal, operator, i); //4개의 연산자에 대해 모두 돌려야 함
+            operator[i] = Integer.parseInt(inputOper[i]);
         }
 
-        bw.write(max+"\n");
-        bw.write(min+"\n");
+        bt(1, num, N, cal, operator);
+
+        bw.write(max + "\n");
+        bw.write(min + "\n");
         bw.flush();
     }
 }
