@@ -17,12 +17,6 @@ for i in range(len(input)):
         fir = stack.pop()
         sec = stack.pop()
 
-        if(type(fir) == str):
-            fir = inputArr[ord(fir)-65]
-
-        if(type(sec) == str):
-            sec = inputArr[ord(sec)-65]
-
         if inputChar == "+":
             fir = fir + sec
             stack.append(fir)
@@ -36,7 +30,7 @@ for i in range(len(input)):
             fir = sec / fir
             stack.append(fir)
     else:
-        stack.append(inputChar)
+        stack.append(inputArr[ord(inputChar) - 65])
 
 print("%.2f"%(stack.pop()))
 
