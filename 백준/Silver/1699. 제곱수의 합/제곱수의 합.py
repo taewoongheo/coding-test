@@ -1,16 +1,22 @@
 import sys
-#sys.stdin = open("input.txt")
+import math
+
+#stdin = open("input.txt")
 
 n = int(sys.stdin.readline().rstrip())
 
-dp = [i for i in range(0, n+1)]
+dp = [0] * (n+1)
+sqrt = []
 
-for i in range(0, n+1):
-    for j in range(1, i):
-        square = j * j
-        if square > i:
-            break
-        if dp[i] > dp[i-square] + 1:
-            dp[i] = dp[i-square] + 1
+for i in range(1, n+1):
+    dp[i] = dp[i-1] + 1
+    if math.sqrt(i).is_integer():
+        dp[i] = 1
+        sqrt.append(i)
+        continue
+    for j in range(len(sqrt)):
+        sqrtValue = sqrt[j]
+        if dp[i-sqrtValue] < dp[i]:
+            dp[i] = dp[i-sqrtValue] + 1
 
-print(dp[-1])
+print(dp[n])
