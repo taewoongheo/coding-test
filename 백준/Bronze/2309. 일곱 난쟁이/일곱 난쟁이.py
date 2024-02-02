@@ -10,17 +10,18 @@ result = []
 
 
 def sumRecursive(idx, arr, sumArr):
-    if len(sumArr) == 7 and sum(sumArr) == 100:
+    if (sum(sumArr) == 100) and (len(sumArr) == 7):
         global result
         result = sumArr
         return
-    if idx >= 9 or len(sumArr) > 7:
+    if idx >= 9:
         return
-    sumRecursive(idx + 1, arr, sumArr + [arr[idx]])
-    sumRecursive(idx + 1, arr, sumArr)
+    sumRecursive(idx+1, arr, sumArr + [arr[idx]])
+    sumRecursive(idx+1, arr, sumArr)
 
+sumArr = []
+sumRecursive(0, arr, sumArr)
 
-sumRecursive(0, arr, [])
 result.sort()
 for i in range(len(result)):
     print(result[i])
