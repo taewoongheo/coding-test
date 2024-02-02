@@ -8,20 +8,19 @@ for i in range(9):
 
 result = []
 
+for i in range(9):
+    fir = i
+    for j in range(9):
+        sec = j
+        if fir == sec:
+            continue
+        arrCopy = arr.copy()
+        arrCopy.remove(arr[i])
+        arrCopy.remove(arr[j])
+        if sum(arrCopy) == 100:
+            result = sorted(arrCopy)
+            break
 
-def sumRecursive(idx, arr, sumArr):
-    if (sum(sumArr) == 100) and (len(sumArr) == 7):
-        global result
-        result = sumArr
-        return
-    if idx >= 9:
-        return
-    sumRecursive(idx+1, arr, sumArr + [arr[idx]])
-    sumRecursive(idx+1, arr, sumArr)
-
-sumArr = []
-sumRecursive(0, arr, sumArr)
-
-result.sort()
 for i in range(len(result)):
     print(result[i])
+
