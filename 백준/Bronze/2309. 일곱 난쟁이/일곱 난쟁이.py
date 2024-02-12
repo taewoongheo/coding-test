@@ -7,20 +7,19 @@ for i in range(9):
     arr.append(int(sys.stdin.readline().rstrip()))
 
 result = []
-
 for i in range(9):
-    fir = i
-    for j in range(9):
-        sec = j
-        if fir == sec:
-            continue
-        arrCopy = arr.copy()
-        arrCopy.remove(arr[i])
-        arrCopy.remove(arr[j])
-        if sum(arrCopy) == 100:
-            result = sorted(arrCopy)
+    fir = arr[i]
+    for j in range(i+1, 9):
+        sec = arr[j]
+        if sum(arr)-fir-sec == 100:
+            arr.remove(fir)
+            arr.remove(sec)
+            result = arr
             break
+    else:
+        continue
+    break
 
-for i in range(len(result)):
+result.sort()
+for i in range(7):
     print(result[i])
-
