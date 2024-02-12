@@ -2,20 +2,20 @@ import sys
 
 #stdin = open("input.txt")
 
-n, s = list(map(int, sys.stdin.readline().split(" ")))
+N, S = list(map(int, sys.stdin.readline().split(" ")))
 arr = list(map(int, sys.stdin.readline().split(" ")))
+
 count = 0
 
 
-def bt(n, depth, num):
-    if n == depth:
+def bt(sum, depth):
+    if depth == N:
         return
-    if (num+arr[depth]) == s:
+    if sum+arr[depth] == S:
         global count
         count += 1
-    bt(n, depth + 1, num + arr[depth])
-    bt(n, depth + 1, num)
+    bt(sum + arr[depth], depth + 1)
+    bt(sum, depth + 1)
 
-
-bt(n, 0, 0)
+bt(0, 0)
 print(count)
