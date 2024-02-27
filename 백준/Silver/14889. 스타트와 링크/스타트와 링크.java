@@ -1,5 +1,4 @@
 import java.io.*;
-import java.util.Arrays;
 
 public class Main {
 
@@ -15,6 +14,7 @@ public class Main {
 
         int startScore = 0;
         int linkScore = 0;
+        int gap = 0;
 
         for (int i = 0; i < N / 2; i++) {
             for (int j = 0; j < N / 2; j++) {
@@ -24,6 +24,11 @@ public class Main {
                 startScore += arr[start[i]][start[j]];
                 linkScore += arr[link[i]][link[j]];
             }
+        }
+        gap = Math.abs(startScore - linkScore);
+        if (gap == 0) {
+            System.out.println(0);
+            System.exit(0);
         }
         return Math.abs(startScore - linkScore);
     }
@@ -47,16 +52,14 @@ public class Main {
             }
             return;
         }
-        for (int i = 0; i < N; i++) {
+        for (int i = last; i < N; i++) {
             if (visited[i]) {
                 continue;
             }
-            if (members[i] >= last) {
-                visited[i] = true;
-                last = members[i];
-                dfs(depth + 1, last);
-                visited[i] = false;
-            }
+            visited[i] = true;
+            last = members[i];
+            dfs(depth + 1, last);
+            visited[i] = false;
         }
     }
 
