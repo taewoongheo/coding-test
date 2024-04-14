@@ -11,10 +11,7 @@ public class Main {
     public static int[] r;
     public static BufferedWriter bw;
 
-    public static void ring(int cur, int last, int cnt) {
-        if (flag) {
-            return;
-        }
+    public static boolean ring(int cur, int last, int cnt) {
         if (v[cur]) {
             for (int i = 1; i <= N; i++) {
                 if (out[i] < out[cur]) {
@@ -23,18 +20,20 @@ public class Main {
                     r[i] = out[i];
                 }
             }
-            flag = true;
-            return;
+            return true;
         }
         out[cur] = cnt;
         v[cur] = true;
         for (int i = 1; i <= N; i++) {
             if ((m[cur][i]) && (i != last)) {
-                ring(i, cur, cnt + 1);
-                v[i] = false;
-                out[i] = 0;
+                if(ring(i, cur, cnt + 1)) {
+                    return true;
+                }
             }
         }
+        v[cur] = false;
+        out[cur] = 0;
+        return false;
     }
 
     public static void dfs(int cur, int cnt) {
