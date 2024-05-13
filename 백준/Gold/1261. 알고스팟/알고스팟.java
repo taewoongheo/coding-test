@@ -2,10 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 
 public class Main {
 
@@ -14,43 +11,51 @@ public class Main {
     public static boolean[][] v;
     public static int[][] m = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
-    public static void bfs() {
+    public static class Point implements Comparable<Point> {
+        int x, y, cnt;
 
-        Queue<int[]> q = new LinkedList<>();
-        q.add(new int[]{1, 1, 0});
+        public Point(int x, int y, int cnt) {
+            this.x = x;
+            this.y = y;
+            this.cnt = cnt;
+        }
+
+        @Override
+        public int compareTo(Point o) {
+            return this.cnt - o.cnt;
+        }
+    }
+
+    public static void bfs() {
+        v = new boolean[M + 1][N + 1];
+        PriorityQueue<Point> pq = new PriorityQueue<>();
+
+        pq.offer(new Point(1, 1, 0));
         v[1][1] = true;
 
-        while (true) {
-
-            ArrayList<int[]> temp = new ArrayList<>();
-            while (!q.isEmpty()) {
-                int[] cur = q.poll();
-                int x = cur[0];
-                int y = cur[1];
-
-                if(x==M && y==N) {
-                    System.out.println(cur[2]);
-                    return;
-                }
-
-                for (int i = 0; i < 4; i++) {
-                    int nx = cur[0] + m[i][0];
-                    int ny = cur[1] + m[i][1];
-                    if (nx > 0 && nx <= M && ny > 0 && ny <= N && !v[nx][ny]) {
-                        if (arr[nx][ny] == 1) {
-                            temp.add(new int[]{nx, ny, cur[2] + 1});
-                        } else {
-                            q.offer(new int[]{nx, ny, cur[2]});
-                        }
-                        v[nx][ny] = true;
-                    }
-                }
+        while(!pq.isEmpty()) {
+            Point p = pq.poll();
+            if(p.x == M && p.y == N) {
+                System.out.println(p.cnt);
+                return;
             }
-
-            for (int i = 0; i < temp.size(); i++) {
-                q.offer(temp.get(i));
+            for (int i = 0; i < 4; i++) {
+                int nx = p.x + m[i][0];
+                int ny = p.y + m[i][1];
+                if (nx < 1 || nx > M || ny < 1 || ny > N) {
+                    continue;
+                }
+                if(arr[nx][ny] == 0 && !v[nx][ny]) {
+                    v[nx][ny] = true;
+                    pq.offer(new Point(nx, ny, p.cnt));
+                }
+                if(arr[nx][ny] == 1 && !v[nx][ny]) {
+                    v[nx][ny] = true;
+                    pq.offer(new Point(nx, ny, p.cnt + 1));
+                }
             }
         }
+
     }
 
     public static void main(String[] args) throws IOException {
