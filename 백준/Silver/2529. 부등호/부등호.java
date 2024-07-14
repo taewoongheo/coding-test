@@ -1,64 +1,36 @@
 import java.io.*;
-import java.util.Objects;
+import java.util.Arrays;
 
 public class Main {
 
-    public static int N;
-    public static String[] inequalityArr;
-    public static StringBuilder maxSb;
-    public static StringBuilder minSb;
-    public static int[] numArr;
-    public static boolean[] visited;
-    public static Long[] result;
-    public static Long maxValue;
-    public static Long minValue;
+    public static int K;
+    public static boolean[] v = new boolean[10];
+    public static String[] symbol;
+    public static boolean first = false;
+    public static String min, max;
 
-    public static boolean correct(int idx, int lastIdx, int depth) {
-        if (Objects.equals(inequalityArr[depth - 1], "<")) {
-            if (numArr[idx] > numArr[lastIdx]) {
-                return true;
-            }
-            return false;
-        } else {
-            if (numArr[idx] < numArr[lastIdx]) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-    public static void bt(int depth, int lastIdx) {
-
-        if (depth == N+1) {
-            double num = result[N];
-            for (int i = N-1; i > -1; i--) {
-                num += result[i] * Math.pow(10, N-i);
-            }
-            if (num > maxValue) {
-                maxValue = (long) num;
-                maxSb = new StringBuilder();
-                for (Long i : result) {
-                    maxSb.append(i);
-                }
-            }
-            if (num < minValue) {
-                minValue = (long) num;
-                minSb = new StringBuilder();
-                for (Long i : result) {
-                    minSb.append(i);
-                }
+    public static void bt(StringBuilder str, int depth) {
+        if (depth == K) {
+            if (!first) {
+                min = str.toString();
+                first = true;
+            } else {
+                max = str.toString();
             }
             return;
         }
+
+        String item = symbol[depth];
+        int lastNum = Integer.parseInt(str.substring(str.length() - 1));
         for (int i = 0; i < 10; i++) {
-            if (visited[i]) {
-                continue;
-            }
-            if (correct(i, lastIdx, depth)) {
-                visited[i] = true;
-                result[depth] = (long) i;
-                bt(depth + 1, i);
-                visited[i] = false;
+            if (!v[i]) {
+                if ((item.equals("<") && lastNum < i) || (item.equals(">") && lastNum > i)) {
+                    v[i] = true;
+                    str.append(i);
+                    bt(str, depth + 1);
+                    str.deleteCharAt(str.length() - 1);  // 재귀 호출 후 원래 상태로 되돌리기
+                    v[i] = false;
+                }
             }
         }
     }
@@ -67,30 +39,21 @@ public class Main {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
-        N = Integer.parseInt(br.readLine());
-        inequalityArr = br.readLine().split(" ");
-
-        maxValue = Long.MIN_VALUE;
-        minValue = Long.MAX_VALUE;
-
-        numArr = new int[10];
-        visited = new boolean[10];
-        result = new Long[N + 1];
-
-        for (int i = 0; i < 10; i++) {
-            numArr[i] = i;
+        K = Integer.parseInt(br.readLine());
+        symbol = new String[K];
+        String[] line = br.readLine().split(" ");
+        for (int i = 0; i < K; i++) {
+            symbol[i] = line[i];
         }
 
         for (int i = 0; i < 10; i++) {
-            visited[i] = true;
-            result[0] = (long) i;
-            bt(1, i);
-            visited[i] = false;
+            v[i] = true;
+            bt(new StringBuilder().append(i), 0);
+            v[i] = false;
         }
 
-        bw.write(maxSb + "\n");
-        bw.write(minSb + "\n");
-
+        bw.write(max + "\n");
+        bw.write(min + "\n");
         bw.flush();
     }
 }
