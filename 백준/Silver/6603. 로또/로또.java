@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Arrays;
 
 public class Main {
 
@@ -7,28 +8,24 @@ public class Main {
     public static boolean[] visited;
     public static int k;
     public static int[] resultArr;
-    public static int minNum;
-    public static int start;
 
     public static void bt(int depth) throws IOException {
-        if (minNum > start) {
-            if (depth == 6) {
-                for (int i = 0; i < 6; i++) {
-                    bw.write(resultArr[i] + " ");
-                }
-                bw.write("\n");
-                return;
+        if (depth == 6) {
+            for (int i = 0; i < 6; i++) {
+                bw.write(resultArr[i] + " ");
             }
-            for (int i = 0; i < k; i++) {
-                if (visited[i]) {
-                    continue;
-                }
-                if (resultArr[depth - 1] < arr[i]) {
-                    visited[i] = true;
-                    resultArr[depth] = arr[i];
-                    bt(depth + 1);
-                    visited[i] = false;
-                }
+            bw.write("\n");
+            return;
+        }
+        for (int i = 0; i < k; i++) {
+            if (visited[i]) {
+                continue;
+            }
+            if (resultArr[depth - 1] < arr[i]) {
+                visited[i] = true;
+                resultArr[depth] = arr[i];
+                bt(depth + 1);
+                visited[i] = false;
             }
         }
     }
@@ -51,11 +48,9 @@ public class Main {
                 idx += 1;
             }
 
-            minNum = k-5;
             visited = new boolean[k];
             resultArr = new int[6];
             for (int i = 0; i < k; i++) {
-                start = i;
                 visited[i] = true;
                 resultArr[0] = arr[i];
                 bt(1);
