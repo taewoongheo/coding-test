@@ -2,23 +2,17 @@ import java.io.*;
 
 public class Main {
 
-    public static int N, K;
+    public static int N;
     public static int[] arr;
     public static boolean[] checkArr; //루프가 끝났는데 false 면 완성할 수 없는 수
-    public static boolean[] v;
 
-    public static void bt(int digit, int num, int curIdx) {
-        if (digit == K) {
-            checkArr[num] = true;
+    public static void dfs(int cur, int sum) {
+        if (cur == N) {
+            checkArr[sum] = true;
             return;
         }
-        for (int i = 0; i < N; i++) {
-            if (!v[i] && curIdx <= i) {
-                v[i] = true;
-                bt(digit + 1, num + arr[i], i);
-                v[i] = false;
-            }
-        }
+        dfs(cur + 1, sum + arr[cur]);
+        dfs(cur + 1, sum);
     }
 
     public static void main(String[] args) throws IOException {
@@ -33,11 +27,7 @@ public class Main {
             arr[i] = Integer.parseInt(line[i]);
         }
 
-        for (int i = 0; i < N; i++) {
-            K = i + 1; //만들어야 하는 자릿수
-            v = new boolean[N];
-            bt(0, 0, 0);
-        }
+        dfs(0, 0);
 
         for (int i = 1; i < 2000001; i++) {
             if(!checkArr[i]) {
