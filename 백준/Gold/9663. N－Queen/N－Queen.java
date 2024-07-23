@@ -12,20 +12,22 @@ public class Main {
         }
         for (int i = 0; i < N; i++) {
             arr[depth] = i;
-            if (isPossible(depth)) {
+            if (isPossible(i, depth)) {
                 nQueen(depth + 1);
             }
         }
     }
 
-    public static boolean isPossible(int depth) {
-
+    public static boolean isPossible(int cur, int depth) {
+        //depth -> 현재 깊이 = 행
+        //cur -> 열
         for (int i = 0; i < depth; i++) {
-            if (arr[i] == arr[depth]) {
-                //같은 행에 있는 지 검사
+            if (cur == arr[i]) {
+                //같은 열에 있으면 안됨
                 return false;
-            } else if (Math.abs(depth - i) == Math.abs(arr[depth] - arr[i])) {
-                //대각선 검사
+            } else if (Math.abs(cur - arr[i]) == Math.abs(depth - i)) {
+                //열의 차 = Math.abs(cur - arr[i])
+                //행의 차 = Math.abs(depth - i);
                 return false;
             }
         }
@@ -34,6 +36,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
+
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
