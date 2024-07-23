@@ -2,52 +2,30 @@ import java.io.*;
 
 public class Main {
 
-    public static int N, answer = 0;
-    public static boolean[][] arr;
+    public static int[] arr;
+    public static int N, answer;
 
-    public static void bt(int depth) {
+    public static void nQueen(int depth) {
         if (depth == N) {
-            answer += 1;
+            answer++;
             return;
         }
         for (int i = 0; i < N; i++) {
-            if (check(i, depth)) {
-                arr[depth][i] = true;
-                bt(depth + 1);
-                arr[depth][i] = false;
+            arr[depth] = i;
+            if (isPossible(depth)) {
+                nQueen(depth + 1);
             }
         }
     }
 
-    public static boolean check(int x, int y) {
+    public static boolean isPossible(int depth) {
 
-        //세로
-        for (int i = 0; i < N; i++) {
-            if (arr[i][x]) {
+        for (int i = 0; i < depth; i++) {
+            if (arr[i] == arr[depth]) {
+                //같은 행에 있는 지 검사
                 return false;
-            }
-        }
-
-        // 세로 대각선 검사
-        for (int i = 1; x - i >= 0 && y - i >= 0; i++) {
-            if (arr[y - i][x - i]) {
-                return false;
-            }
-        }
-        for (int i = 1; x + i < N && y - i >= 0; i++) {
-            if (arr[y - i][x + i]) {
-                return false;
-            }
-        }
-
-        // 가로 대각선 검사
-        for (int i = 1; x - i >= 0 && y - i >= 0; i++) {
-            if (arr[y - i][x - i]) {
-                return false;
-            }
-        }
-        for (int i = 1; x + i < N && y - i >= 0; i++) {
-            if (arr[y - i][x + i]) {
+            } else if (Math.abs(depth - i) == Math.abs(arr[depth] - arr[i])) {
+                //대각선 검사
                 return false;
             }
         }
@@ -60,14 +38,9 @@ public class Main {
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
         N = Integer.parseInt(br.readLine());
-        arr = new boolean[N][N];
+        arr = new int[N];
 
-        //가로기준검사하면서 세로로 나아감
-        for (int i = 0; i < N; i++) {
-            arr[0][i] = true;
-            bt(1);
-            arr[0][i] = false;
-        }
+        nQueen(0);
 
         bw.write(answer + "\n");
         bw.flush();
