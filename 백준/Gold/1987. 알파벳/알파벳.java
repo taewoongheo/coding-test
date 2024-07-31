@@ -14,7 +14,7 @@ public class Main {
         for (int i = 0; i < 4; i++) {
             int nr = row + m[i][0];
             int nc = col + m[i][1];
-            if (nr >= 0 && nr < R && nc >= 0 && nc < C && !v[nr][nc] && isPromise(arr[nr][nc])) {
+            if (nr >= 0 && nr < R && nc >= 0 && nc < C && !v[nr][nc] && !alphabet[arr[nr][nc] - 65]) {
                 char ch = arr[nr][nc];
                 alphabet[ch - 65] = true;
                 v[nr][nc] = true;
@@ -23,15 +23,6 @@ public class Main {
                 v[nr][nc] = false;
             }
         }
-    }
-
-    public static boolean isPromise(char ch) {
-        for (int i = 0; i < 26; i++) {
-            if (alphabet[ch - 65]) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public static void main(String[] args) throws IOException {
