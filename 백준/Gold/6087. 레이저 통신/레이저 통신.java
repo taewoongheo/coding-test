@@ -2,96 +2,98 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
+    static char[][] map;
+    static int[][][] visited;
+    static int[] xMove = {-1, 0, 1, 0};
+    static int[] yMove = {0, -1, 0, 1};
+    static point[] cPoint;
+    static int W, H, ANSWER = 100000;
+    static PriorityQueue<point> queue = new PriorityQueue<>();
 
-    public static class Laser {
-        int r, c, mirror, prevDir;
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        public Laser(int r, int c, int mirror, int prevDir) {
-            this.r = r;
-            this.c = c;
-            this.mirror = mirror;
-            this.prevDir = prevDir;
+        String[] split = br.readLine().split(" ");
+        W = Integer.parseInt(split[0]);
+        H = Integer.parseInt(split[1]);
+
+        map = new char[H][W];
+        visited = new int[H][W][4];
+        cPoint = new point[2];
+
+        for (int i = 0, idx = 0; i < H; i++) {
+            String line = br.readLine();
+            map[i] = line.toCharArray();
+            for (int j = 0; j < W; j++) {
+            	// bfs 알고리즘 도중
+                // 0, 1, 2, 3 범위에 들어가지 않도록 방향을 -5로 지정
+                if (map[i][j] == 'C') cPoint[idx++] = new point(i, j, -5, -1);
+            }
+        }
+
+        bfs(cPoint[0]);
+
+        System.out.println(ANSWER);
+        br.close();
+    }
+
+    public static void bfs(point start) {
+        point c = cPoint[1];
+        queue.add(start);
+
+        for (int i = 0; i < H; i++) {
+            for (int j = 0; j < W; j++) {
+                Arrays.fill(visited[i][j], Integer.MAX_VALUE);
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            point current = queue.poll();
+
+            if (current.x == c.x && current.y == c.y) {
+                ANSWER = Math.min(ANSWER, current.mirrors);
+                continue;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                int newX = current.x + xMove[i];
+                int newY = current.y + yMove[i];
+
+
+                if (newX < 0 || newY < 0 || newX >= H || newY >= W) continue;
+
+                if (map[newX][newY] == '*') continue;
+
+
+                // 180 회전이라면 갈 수 없는 구조이므로 패스
+                if (Math.abs(i - current.dir) == 2) continue;
+
+                // 90 회전을 해야 한다면 거울의 갯수 +1
+                int nextMirror = (current.dir == i) ? current.mirrors : current.mirrors + 1;
+
+                // 현재 방향에서 다음 newX, newY 위치로 갈때 사용한 미러의 갯수가
+                // 더 적은 거울로 도달할 수 있는 경우가 생긴다면
+                if (visited[newX][newY][i] > nextMirror) {
+                    visited[newX][newY][i] = nextMirror;
+                    queue.add(new point(newX, newY, i, nextMirror));
+                }
+            }
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+    public static class point implements Comparable<point> {
+        int x, y, dir, mirrors;
 
-        String[] line = br.readLine().split(" ");
-        int W = Integer.parseInt(line[0]);
-        int H = Integer.parseInt(line[1]);
-        char[][] map = new char[H][W];
-        int[][] arr = new int[H][W];
-        boolean[][][] v = new boolean[H][W][4];
-        int[] start = new int[2];
-        boolean s = false;
-        int[] end = new int[2];
-        for (int r = 0; r < H; r++) {
-            String input = br.readLine();
-            for (int c = 0; c < W; c++) {
-                if (input.charAt(c) == 'C') {
-                    if (!s) {
-                        start = new int[]{r, c};
-                        s = true;
-                    } else {
-                        end = new int[]{r, c};
-                    }
-                }
-                map[r][c] = input.charAt(c);
-            }
+        public point(int x, int y, int dir, int mirrors) {
+            this.x = x;
+            this.y = y;
+            this.dir = dir;
+            this.mirrors = mirrors;
         }
 
-        //bfs
-        Queue<Laser> q = new LinkedList<>();
-        int[][] m = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-        q.offer(new Laser(start[0], start[1], 0, -1));
-        int ans = Integer.MAX_VALUE;
-        HashMap<Integer, Integer> reverseDir = new HashMap<>();
-        reverseDir.put(0, 1);
-        reverseDir.put(1, 0);
-        reverseDir.put(2, 3);
-        reverseDir.put(3, 2);
-        for (int i = 0; i < 4; i++) {
-            v[start[0]][start[1]][i] = true;
+        @Override
+        public int compareTo(point o) {
+            return this.mirrors - o.mirrors;
         }
-        arr[start[0]][start[1]] = 0;
-        while (!q.isEmpty()) {
-            Laser l = q.poll();
-            int r = l.r;
-            int c = l.c;
-            if (r == end[0] && c == end[1]) {
-                if (l.mirror < ans) {
-                    ans = l.mirror;
-                }
-                continue;
-            }
-            for (int i = 0; i < 4; i++) {
-                int mirror = l.mirror;
-                int prevDir = l.prevDir;
-                int nr = r + m[i][0];
-                int nc = c + m[i][1];
-                if (nr < 0 || nr >= H || nc < 0 || nc >= W || map[nr][nc] == '*') {
-                    continue;
-                }
-                if (prevDir == -1) {
-                    prevDir = i;
-                }
-                if (prevDir != i) {
-                    mirror += 1;
-                    prevDir = i;
-                }
-                if (!v[nr][nc][i] || mirror < arr[nr][nc]) {
-                    v[nr][nc][i] = true;
-                    int reverse = reverseDir.get(i);
-                    v[r][c][reverse] = true;
-                    arr[nr][nc] = mirror;
-                    q.offer(new Laser(nr, nc, mirror, prevDir));
-                }
-            }
-        }
-
-        bw.write(ans + "\n");
-        bw.flush();
     }
 }
