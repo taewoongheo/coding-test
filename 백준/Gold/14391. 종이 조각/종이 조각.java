@@ -1,28 +1,25 @@
-import java.util.*;
 import java.io.*;
 
-public class Main {
-    public static int N,M;
-    public static int[][] paper;
+class Main {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        N = Integer.parseInt(st.nextToken());
-        M = Integer.parseInt(st.nextToken());
-        paper = new int[N][M];
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
-        for(int i=0; i<N; i++) {
-            String str = br.readLine();
-            for(int j=0; j<M; j++) {
-                paper[i][j] = str.charAt(j) - '0';
+        String[] lines = br.readLine().split(" ");
+        int N = Integer.parseInt(lines[0]);
+        int M = Integer.parseInt(lines[1]);
+
+        int[][] arr = new int[N][M];
+        for (int i = 0; i < N; i++) {
+            String line = br.readLine();
+            for (int j = 0; j < M; j++) {
+                arr[i][j] = line.charAt(j) - '0';
             }
         }
 
         int ans = 0;
-
-        for (int s = 0; s < (1<<N*M); s++) {
-            //가로
+        for (int s = 0; s < (1 << (N * M)); s++) {
             int sum = 0;
             for (int i = 0; i < N; i++) {
                 int cur = 0;
@@ -30,7 +27,7 @@ public class Main {
                     int k = i * M + j;
                     if ((s & (1 << k)) == 0) {
                         cur *= 10;
-                        cur += paper[i][j];
+                        cur += arr[i][j];
                     } else {
                         sum += cur;
                         cur = 0;
@@ -39,14 +36,13 @@ public class Main {
                 sum += cur;
             }
 
-            //세로
             for (int j = 0; j < M; j++) {
                 int cur = 0;
                 for (int i = 0; i < N; i++) {
-                    int k = i*M +j;
+                    int k = i * M + j;
                     if ((s & (1 << k)) != 0) {
                         cur *= 10;
-                        cur += paper[i][j];
+                        cur += arr[i][j];
                     } else {
                         sum += cur;
                         cur = 0;
@@ -54,10 +50,11 @@ public class Main {
                 }
                 sum += cur;
             }
+
             ans = Math.max(ans, sum);
         }
 
-        System.out.println(ans);
+        bw.write(ans + "\n");
+        bw.flush();
     }
-
 }
