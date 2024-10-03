@@ -2,68 +2,57 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-
-    public static int N, idx;
-    public static ArrayList<HashSet<Integer>> m;
-    public static int[] inputArr;
-    public static boolean[] v;
-    public static Queue<Integer> q;
-
-    public static void bfs() {
-        v[1] = true;
-        q.offer(1);
-        idx = 2;
-        while (!q.isEmpty()) {
-            int cur = q.poll();
-            int neighborCnt = 0;
-            for (int node : m.get(cur)) {
-                if(!v[node]) {
-                    v[node] = true;
-                    neighborCnt += 1;
-                }
-            }
-
-            for(int i = idx; i < idx + neighborCnt; i++) { //해당 부분만 검사
-                if (!v[inputArr[i]]) {
-                    System.out.println("0");
-                    return;
-                } else {
-                    q.offer(inputArr[i]);
-                }
-            }
-            idx += neighborCnt;
-        }
-        System.out.println("1");
-    }
-
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        N = Integer.parseInt(br.readLine());
-        m = new ArrayList<>();
-        for (int i = 0; i <= N; i++) {
-            m.add(new HashSet<>());
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+
+        int N = Integer.parseInt(br.readLine());
+        Map<Integer, ArrayList<Integer>> g = new HashMap<>();
+        for (int i = 1; i <= N; i++) {
+            g.put(i, new ArrayList<>());
         }
-        String[] line;
         for (int i = 0; i < N - 1; i++) {
-            line = br.readLine().split(" ");
-            int x = Integer.parseInt(line[0]);
-            int y = Integer.parseInt(line[1]);
-            m.get(x).add(y);
-            m.get(y).add(x);
+            String[] line = br.readLine().split(" ");
+            int node1 = Integer.parseInt(line[0]);
+            int node2 = Integer.parseInt(line[1]);
+            g.get(node1).add(node2);
+            g.get(node2).add(node1);
         }
-        line = br.readLine().split(" ");
-        inputArr = new int[N + 1];
-        for (int i = 0; i < N; i++) {
-            inputArr[i+1] = Integer.parseInt(line[i]);
-        }
-
-        if (inputArr[1] != 1) {
-            System.out.println("0");
-            System.exit(0);
+        int[] arr = new int[N + 1];
+        String[] line = br.readLine().split(" ");
+        for (int i = 1; i <= N; i++) {
+            arr[i] = Integer.parseInt(line[i - 1]);
         }
 
-        v = new boolean[N + 1];
-        q = new LinkedList<>();
-        bfs();
+        Queue<Integer> q = new LinkedList<>();
+        boolean[] v = new boolean[N + 1];
+        boolean possible = arr[1] == 1;
+        q.add(1);
+        v[1] = true;
+        int idx = 2;
+        while (!q.isEmpty()) {
+            if (!possible) {
+                break;
+            }
+            int cNode = q.poll();
+            int cnt = 0;
+            for (Integer node : g.get(cNode)) {
+                if (!v[node]) {
+                    v[node] = true;
+                    cnt += 1;
+                }
+            }
+            for (int i = idx; i < idx + cnt; i++) {
+                if (v[arr[i]]) {
+                    q.offer(arr[i]);
+                } else {
+                    possible = false;
+                }
+            }
+            idx += cnt;
+        }
+
+        bw.write((possible ? "1" : "0") + "\n");
+        bw.flush();
     }
 }
