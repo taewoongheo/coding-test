@@ -4,31 +4,34 @@ import java.util.*;
 public class Main {
 
 	public static int N;
-	public static int[] arr;
-	public static int idx = 2;
 	public static Map<Integer, ArrayList<Integer>> g;
+	public static int[] arr;
 	public static boolean[] v;
+	public static int idx = 2;
 
 	public static boolean dfs(int node) {
+
 		HashSet<Integer> set = new HashSet<>();
 		for (Integer n : g.get(node)) {
-			if (!v[n]) { //아직 방문하지 않은 노드면 set 에 넣음.
-				set.add(n);
+			if (!v[n]) {
 				v[n] = true;
+				set.add(n);
 			}
 		}
+
 		while (!set.isEmpty()) {
-			int nNode = arr[idx]; //다음에 갈 노드
-			if (set.contains(nNode)) { //현재 set 에 포함여부 = 현재 노드와 이웃해 있는지 여부
-				set.remove(nNode);
+			int cNode = arr[idx];
+			if (set.contains(cNode)) {
+				set.remove(cNode);
 				idx++;
-				if (!dfs(nNode)) {
+				if (!dfs(cNode)) {
 					return false;
 				}
-			} else { //만약 현재 노드와 이웃해있지 않다면 false 임.
+			} else {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
@@ -37,9 +40,11 @@ public class Main {
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
 		N = Integer.parseInt(br.readLine());
+		arr = new int[N + 1];
+		v = new boolean[N + 1];
 		g = new HashMap<>();
-		for (int i = 1; i <= N; i++) {
-			g.put(i, new ArrayList<>());
+		for (int i = 0; i < N; i++) {
+			g.put(i + 1, new ArrayList<>());
 		}
 		for (int i = 0; i < N - 1; i++) {
 			String[] line = br.readLine().split(" ");
@@ -48,15 +53,11 @@ public class Main {
 			g.get(node1).add(node2);
 			g.get(node2).add(node1);
 		}
-		arr = new int[N + 1];
-		v = new boolean[N + 1];
-		String[] input = br.readLine().split(" ");
-		for (int i = 1; i <= N; i++) {
-			arr[i] = Integer.parseInt(input[i - 1]);
+		String[] line = br.readLine().split(" ");
+		for (int i = 0; i < N; i++) {
+			arr[i + 1] = Integer.parseInt(line[i]);
 		}
-
 		if (arr[1] != 1) {
-			//첫번째 수가 1 이 아니면 0 출력
 			bw.write("0\n");
 			bw.flush();
 			System.exit(0);
