@@ -4,9 +4,7 @@ const input = require("fs")
   .toString();
 
 const N = Number(input);
-const board = Array(N)
-  .fill()
-  .map(() => new Array(N).fill(false));
+const v = Array(N).fill(-1);
 
 let ans = 0;
 
@@ -17,25 +15,19 @@ function bt(row) {
   }
   for (let i = 0; i < N; i++) {
     if (check(row, i)) {
-      board[row][i] = true;
+      v[row] = i;
       bt(row + 1);
-      board[row][i] = false;
+      v[row] = 0;
     }
   }
 }
 
 function check(row, col) {
   for (let i = 0; i < row; i++) {
-    const diff = row - i;
-    const lDia = col - diff;
-    const rDia = col + diff;
-    if (board[i][col]) {
+    if (v[i] === col) {
       return false;
     }
-    if (lDia >= 0 && board[i][lDia]) {
-      return false;
-    }
-    if (rDia <= N - 1 && board[i][rDia]) {
+    if (Math.abs(v[i] - col) === row - i) {
       return false;
     }
   }
