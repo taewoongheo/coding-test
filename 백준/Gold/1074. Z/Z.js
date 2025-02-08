@@ -16,7 +16,7 @@ function divide(row, col, size) {
     process.exit(0);
   }
 
-  if (r >= row && r < row + size && c >= col && c < col + size) {
+  if (row <= r && r < row + size && col <= c && c < col + size) {
     size = parseInt(size / 2);
     divide(row, col, size);
     divide(row, col + size, size);
