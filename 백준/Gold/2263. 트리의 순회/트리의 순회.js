@@ -1,13 +1,13 @@
+
 const input = require("fs")
   .readFileSync(process.platform === "linux" ? "/dev/stdin" : "input.txt")
   .toString()
   .trim()
-  .split("\n")
-  .map((el) => el.split(" ").map(Number));
+  .split("\n");
 
-const N = input.shift()[0];
-const inorder = input.shift();
-const postorder = input.shift();
+const N = +input.shift();
+const inorder = input.shift().split(" ").map(Number);
+const postorder = input.shift().split(" ").map(Number);
 const preorder = Array.from({ length: N }, () => 0);
 let idx = 0;
 
@@ -18,15 +18,15 @@ function getPreorder(is, ie, ps, pe) {
   if (is <= ie && ps <= pe) {
     preorder[idx++] = postorder[pe];
 
-    let pos = is;
+    let inorderRootIdx = 0;
     for (let i = is; i <= ie; i++) {
       if (inorder[i] === postorder[pe]) {
-        pos = i;
+        inorderRootIdx = i;
         break;
       }
     }
 
-    getPreorder(is, pos - 1, ps, ps + pos - 1 - is);
-    getPreorder(pos + 1, ie, ps + pos - is, pe - 1);
+    getPreorder(is, inorderRootIdx - 1, ps, ps + inorderRootIdx - 1 - is);
+    getPreorder(inorderRootIdx + 1, ie, ps + inorderRootIdx - is, pe - 1);
   }
 }
