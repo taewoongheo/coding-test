@@ -1,22 +1,24 @@
 function solution(n, s, a, b, fares) {
-    var answer = Number.MAX_SAFE_INTEGER;
+    var answer = Infinity;
     
-    const g = Array.from({length: n + 1}, () => Array.from({length: n + 1}, () => Infinity))
-    const dist = Array.from({length: n + 1}, () => Array.from({length: n + 1}, () => Infinity))
-    
+    const edges = new Map();
+    for (let i = 1; i <= n; i++) {
+        edges.set(i, []);
+    }
     for (let i = 0; i < fares.length; i++) {
-        const [v1, v2, cost] = fares[i];
-        g[v1][v2] = cost;
-        g[v2][v1] = cost;
+        const [s, e, c] = fares[i];
+        edges.get(s).push([e, c]);
+        edges.get(e).push([s, c]);
     }
     
+    const dist = Array.from({length: n + 1}, _ => Array.from({length: n + 1}, _ => Infinity));
     for (let i = 1; i <= n; i++) {
-        for (let j = 1; j <= n; j++) {
-            if (i === j) dist[i][j] = 0;
-            else dist[i][j] = g[i][j];
+        dist[i][i] = 0;
+        for (const [t, c] of edges.get(i)) {
+            dist[i][t] = c;
         }
     }
-    
+
     for (let k = 1; k <= n; k++) {
         for (let i = 1; i <= n; i++) {
             for (let j = 1; j <= n; j++) {
@@ -28,8 +30,10 @@ function solution(n, s, a, b, fares) {
     }
     
     for (let i = 1; i <= n; i++) {
-        answer = Math.min(answer, dist[s][i] + dist[i][a] + dist[i][b])
+        answer = Math.min(answer, dist[s][i] + dist[i][a] + dist[i][b]);
     }
     
+    console.log(dist);
+
     return answer;
 }
