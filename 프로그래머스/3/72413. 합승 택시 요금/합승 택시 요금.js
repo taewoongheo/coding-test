@@ -1,39 +1,35 @@
 function solution(n, s, a, b, fares) {
     var answer = Infinity;
     
-    const edges = new Map();
-    for (let i = 1; i <= n; i++) {
-        edges.set(i, []);
-    }
+    const g = Array.from({length: n + 1}, () => 
+        Array.from({length: n + 1}, () => Infinity)
+    )
+    
     for (let i = 0; i < fares.length; i++) {
         const [s, e, c] = fares[i];
-        edges.get(s).push([e, c]);
-        edges.get(e).push([s, c]);
+        g[s][e] = c;
+        g[e][s] = c;
     }
     
-    const dist = Array.from({length: n + 1}, _ => Array.from({length: n + 1}, _ => Infinity));
     for (let i = 1; i <= n; i++) {
-        dist[i][i] = 0;
-        for (const [t, c] of edges.get(i)) {
-            dist[i][t] = c;
-        }
+        g[i][i] = 0;
     }
-
+    
     for (let k = 1; k <= n; k++) {
         for (let i = 1; i <= n; i++) {
             for (let j = 1; j <= n; j++) {
-                if (dist[i][k] + dist[k][j] < dist[i][j]) {
-                    dist[i][j] = dist[i][k] + dist[k][j];
+                if (g[i][k] + g[k][j] < g[i][j]) {
+                    g[i][j] = g[i][k] + g[k][j];
                 }
             }
         }
     }
     
+    console.log(g);
+    
     for (let i = 1; i <= n; i++) {
-        answer = Math.min(answer, dist[s][i] + dist[i][a] + dist[i][b]);
+        answer = Math.min(answer, g[s][i] + g[i][a] + g[i][b]);
     }
     
-    console.log(dist);
-
     return answer;
 }
