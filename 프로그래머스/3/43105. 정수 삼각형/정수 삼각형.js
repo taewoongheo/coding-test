@@ -16,14 +16,16 @@ function solution(triangle) {
     dp[0] = triangle[0][0];
 
     for (let i = 0; i < triangle.length - 1; i++) {
-        const memo = [...dp];
-        for (let j = 0; j < i + 1; j++) {
-            dp[j] = Math.max(dp[j], memo[j] + triangle[i + 1][j]);
-            dp[j + 1] = memo[j] + triangle[i + 1][j + 1];
+        for (let j = i; j >= 0; j--) {
+            dp[j + 1] = Math.max(dp[j + 1], dp[j] + triangle[i + 1][j + 1]);
+            dp[j] += triangle[i + 1][j];
+            
             answer = Math.max(answer, dp[j]);
             answer = Math.max(answer, dp[j + 1]);
         }
     }
+    
+    console.log(dp);
     
     return answer;
 }
