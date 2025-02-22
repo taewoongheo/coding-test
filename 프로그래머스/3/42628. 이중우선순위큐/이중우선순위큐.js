@@ -19,17 +19,18 @@ function solution(operations) {
         answer.push(data);
     }
     
-    for (let i = 0; i < operations.length; i++) {
-        const [operation, num] = operations[i].split(' ');
-        if (operation === 'I') insert(Number(num));
-        else {
-            if (num === '1') answer.pop();
-            else answer.shift();
+    for (const operation of operations) {
+        const [oper, num] = operation.split(' ');
+        if (oper === 'I') {
+            insert(Number(num));
+        } else {
+            if (num === '1') {
+                answer.pop();
+            } else {
+                answer.shift();
+            }
         }
     }
-    
-    if (answer.length === 0) {
-        return [0, 0];
-    }
+    if (answer.length === 0) return [0, 0];
     return [answer[answer.length - 1], answer[0]];
 }
