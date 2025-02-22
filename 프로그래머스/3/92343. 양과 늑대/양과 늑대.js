@@ -1,7 +1,22 @@
+// 문제요약: 양의 개수를 늑대보다 많이 유지하면서 탐색할 경우, 양의 개수 최댓값 구하기
+// 입력: 
+//  info: 양 늑대 정보(=노드 개수), 2<=info<=17
+//  edges: 간선 정보, edges = info - 1
+// 출력: 양의 개수 최댓값
+// 알고리즘 선택:
+//  dfs가 가장 먼저 떠올랐다. 이때 탐색하는 상태를 고려해야 함
+//      만약 2번 노드를 탐색한다고 했을 때, 1번 노드를 탐색했느냐 안했느냐에 따라 답이 달라지기 때문
+//      따라서 상태를 기준으로 하는 dfs를 선택
+// 부분문제 분해: 
+//  dfs:
+//      현재 상태에서 방문할 수 있는 노드들을 탐색
+//      해당 노드에 대한 상태를 생성
+//          생성된 상태가 sheep > wolf 인 경우에만 dfs 진행
+
 class Status {
-    constructor(info, treeinfo, visited, sheep, wolf) {
+    constructor(info, edgesInfo, visited, sheep, wolf) {
         this.info = info;
-        this.treeinfo = treeinfo;
+        this.edgesInfo = edgesInfo;
         this.visited = visited;
         this.sheep = sheep;
         this.wolf = wolf;
@@ -10,55 +25,47 @@ class Status {
     visitable() {
         const res = [];
         
-        this.visited.forEach(v => {
-            for (const node of this.treeinfo.get(v)) {
+        this.visited.forEach((n) => {
+            for (const node of this.edgesInfo.get(n)) {
                 if (!this.visited.has(node)) {
                     res.push(node);
                 }
             }
-        })
+        });
         
         return res;
     }
     
     visit(node) {
-        const copyVisited = new Set(this.visited);
+        const copyVisited = new Set([...this.visited]);
         copyVisited.add(node);
-        const newSheep = this.sheep + (this.info[node] === 0 ? 1 : 0);
-        const newWolf = this.wolf + (this.info[node] === 1 ? 1 : 0);
-        return new Status(this.info, this.treeinfo, copyVisited, newSheep, newWolf);
+        const sheep = this.sheep + (this.info[node] === 0 ? 1 : 0);
+        const wolf = this.wolf + (this.info[node] === 1 ? 1 : 0);
+        return new Status(this.info, this.edgesInfo, copyVisited, sheep, wolf);
     }
 }
 
 function dfs(status) {
     const visitable = status.visitable();
-    let sheepValue = status.sheep;
+    let result = status.sheep;
     
-    visitable.forEach(v => {
-        const newStatus = status.visit(v);
-        let newStatusValue = 0;
-        
-        if (newStatus.sheep > newStatus.wolf) newStatusValue = dfs(newStatus);
-        
-        sheepValue = Math.max(sheepValue, newStatusValue);
-    })
+    visitable.forEach((n) => {
+        const newStatus = status.visit(n);
+        if (newStatus.sheep > newStatus.wolf) result = Math.max(result, dfs(newStatus))
+    });
     
-    return sheepValue;
+    return result;
 }
 
 function solution(info, edges) {
-    var answer = 0;
-    
-    const treeinfo = new Map();
-    for (let i = 0; i < edges.length; i++) {
-        const [s, e] = edges[i];
-        if (!treeinfo.has(s)) treeinfo.set(s, []);
-        if (!treeinfo.has(e)) treeinfo.set(e, []);
-        treeinfo.get(s).push(e);
-        treeinfo.get(e).push(s);
+
+    const edgesInfo = new Map();
+    for (const edge of edges) {
+        const [n1, n2] = edge;
+        if (!edgesInfo.has(n1)) edgesInfo.set(n1, []);
+        if (!edgesInfo.has(n2)) edgesInfo.set(n2, []);
+        edgesInfo.get(n1).push(n2);
     }
     
-    answer = dfs(new Status(info, treeinfo, new Set([0]), 1, 0));
-    
-    return answer;
+    return dfs(new Status(info, edgesInfo, new Set([0]), 1, 0));
 }
