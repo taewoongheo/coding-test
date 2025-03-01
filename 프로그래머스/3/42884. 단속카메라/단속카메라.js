@@ -1,13 +1,14 @@
 function solution(routes) {
     var answer = 1;
     
-    routes.sort((a, b) => a[1] - b[1]);
+    routes = routes.sort((a, b) => b[1] - a[1]);
 
-    let out = routes[0][1];
-    for (let i = 1; i < routes.length; i++) {
-        if (routes[i][0] > out) {
+    let v = routes.pop()[1];
+    while (routes.length !== 0) {
+        const [s, e] = routes.pop();
+        if (v < s) {
             answer++;
-            out = routes[i][1];
+            v = e;
         }
     }
     
