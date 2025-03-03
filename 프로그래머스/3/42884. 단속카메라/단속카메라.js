@@ -3,12 +3,12 @@ function solution(routes) {
     
     routes = routes.sort((a, b) => b[1] - a[1]);
 
-    let v = routes.pop()[1];
+    let out = routes.pop()[1];
     while (routes.length !== 0) {
-        const [s, e] = routes.pop();
-        if (v < s) {
+        const car = routes.pop();
+        if (out < car[0]) {
+            out = car[1];
             answer++;
-            v = e;
         }
     }
     
