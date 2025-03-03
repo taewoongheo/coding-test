@@ -1,5 +1,10 @@
-// dp[i + 1][j] = Math.max(dp[i][j] + triangle[i + 1][j], dp[i][j]);
-// dp[i + 1][j + 1] = Math.max(dp[i][j] + triangle[i + 1][j + 1], dp[i][j + 1]);
+// 최댓값 구하기
+// 특정 상태가 되기까지 중복이 발생
+// 부분문제의 최적해 존재
+// 결정문제(이 숫자를 선택?)
+// 각 문제들이 서로 독립적
+// dp[i + 1] = Math.max(dp[i] + triangle[i + 1][j + 1], dp[i + 1]);
+// dp[i] += triangle[i][j + 1]
 
 function solution(triangle) {
     var answer = 0;
