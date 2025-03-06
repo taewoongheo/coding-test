@@ -1,6 +1,5 @@
-// 26진수로 보면 됨
-
 function solution(n, bans) {
+    var answer = '';
     
     const strToNum = (str) => {
         let num = 0; 
@@ -27,8 +26,7 @@ function solution(n, bans) {
     bans = bans.sort((a, b) => strToNum(b) - strToNum(a));
     
     while (bans.length) {
-        const str = bans.pop();
-        if (n >= strToNum(str)) n++;
+        if (n >= strToNum(bans.pop())) n++;
         else break;
     }
     
