@@ -1,48 +1,51 @@
-// 문제요약: 최소 소비전력 구하기
-// 알고리즘 선택: 
-//  에어컨은 1도 증가, 하강, 유지 가능
-//  고려해야 하는 상태: 실내온도, 소비전력, 시간
-//      dp[시간][실내온도]=소비전력
-//      네 가지 동작이 가능
-//          1. 실내온도를 올리는 경우
-//              dp[i][j] = min(dp[i - 1][j - 1] + a);
-//          2. 실내온도를 내리는 경우
-//              dp[i][j] = min(dp[i - 1][j + 1] + a);
-//          3. 실내온도를 유지하는 경우
-//              dp[i][j] = min(dp[i - 1][j] + b);
-//          4. 에어컨을 끄는 경우
-//              dp[i][j] = 실외온도를 기준으로 dp[i - 1][j += 1]
-// 부분문제 분해: 
-//  외부온도 0을 기준으로 t1, t2의 범위를 재설정
-//  실내온도는 0~50까지의 범위를 가짐
-//  
-
 function solution(temperature, t1, t2, a, b, onboard) {
-    var answer = 0;
+    const MAX = 1000001;
+    const MIN_TEMP = -10, MAX_TEMP = 40;
+    const RANGE = MAX_TEMP - MIN_TEMP;
     
+    // 온도가 이미 쾌적 범위 내라면 에어컨 필요 없음
+    if (t1 <= temperature && temperature <= t2) return 0;
+    
+    // 온도 정규화: -10도를 0으로 만들어 0~50 범위 사용
+    temperature -= MIN_TEMP;
+    t1 -= MIN_TEMP;
+    t2 -= MIN_TEMP;
+    
+    // DP 배열 초기화
     const dp = Array.from({length: onboard.length}, () => 
-                         Array.from({length: 50}, () => Infinity));
-    temperature = temperature > t2 ? t1 - (temperature - t2) : temperature;
-    t1 -= temperature;
-    t2 -= temperature;
-    temperature = 0; 
-    
+                         Array.from({length: RANGE + 1}, () => MAX));
     dp[0][temperature] = 0;
     
-    for (let i = 1; i < onboard.length; i++) {
-        const isPersonInCar = onboard[i];
-        for (let j = 0; j < 50; j++) {
-            if (isPersonInCar && (j < t1 || j > t2)) continue;
+    for (let i = 0; i < onboard.length - 1; i++) {
+        for (let j = 0; j <= RANGE; j++) {
+            // 현재 상태가 불가능하면 넘어감
+            if (dp[i][j] === MAX) continue;
             
-            const candi = [];
+            // 승객이 탑승했는데 온도 범위 밖인 경우 SKIP
+            if (onboard[i] === 1 && (j < t1 || j > t2)) continue;
             
-            candi.push(j > 0 ? dp[i - 1][j - 1] + a : Infinity);
-            candi.push(j !== 0 ? dp[i - 1][j] + b : dp[i - 1][j]);
-            candi.push(j < 49 ? dp[i - 1][j + 1] : Infinity);
+            // 1. 에어컨을 끄는 경우
+            let nextTemp = j;
+            if (j < temperature && j < RANGE) nextTemp = j + 1;
+            else if (j > temperature && j > 0) nextTemp = j - 1;
+            dp[i + 1][nextTemp] = Math.min(dp[i][j], dp[i + 1][nextTemp]);
             
-            dp[i][j] = Math.min(...candi);
+            // 2. 희망온도 != 현재온도
+            if (j > 0) dp[i + 1][j - 1] = Math.min(dp[i][j] + a, dp[i + 1][j - 1]);
+            if (j < RANGE) dp[i + 1][j + 1] = Math.min(dp[i][j] + a, dp[i + 1][j + 1]);
+            
+            // 3. 희망온도 == 현재온도
+            dp[i + 1][j] = Math.min(dp[i][j] + b, dp[i + 1][j]);
         }
     }
     
-    return Math.min(...dp[dp.length - 1]);
+    // 최소 전력 찾기
+    let answer = MAX;
+    for (let j = 0; j <= RANGE; j++) {
+        // 마지막에 승객이 있으면 쾌적 범위 확인
+        if (onboard[onboard.length - 1] === 1 && (j < t1 || j > t2)) continue;
+        answer = Math.min(dp[onboard.length - 1][j], answer);
+    }
+    
+    return answer;
 }
