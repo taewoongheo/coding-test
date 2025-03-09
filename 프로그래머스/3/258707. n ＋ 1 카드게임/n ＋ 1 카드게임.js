@@ -1,45 +1,43 @@
 // 게임 룰
-//  1~n 카드뭉치
-//  n/3장 가지고 시작
-//  카드 두 장 뽑음, 코인으로 교환가능, 아니면 버려야됨
-//  가진 카드 중 n+1 을 만들어서 내야됨. 못내면 끝
-// 문제요약: 도달 가능한 최대 라운드 수 구하기
+//  1~n 카드뭉치와 coin이 있음
+//  n/3개의 카드를 가지고 시작
+//  라운드마다 카드 두 장 뽑음, 코인 써서 교환가능
+//  카드의 합이 n+1 이 되도록 못내면 거기서 끝
+// 문제요약: 도달가능한 최대 라운드 수 구하기
 // 알고리즘 선택: 
-//  x,y가 n+1을 만족하여 카드를 낼 수 있다고 해보자
-//  이때 반드시 n+1이라는 정확한 수가 되어야 하기 때문에 x는 무조건 y랑만 짝을 이룸
-//  따라서 현재 갖고 있는 카드에서 n+1이 만족한다면 이후에도 똑같이 계속 낼 수 있는 상태가 됨
-//      만약 뽑은 카드와 사용할 수 있다고 해도, 그건 y와 항상 동일한 수임
-//  그렇기 때문에 코인을 최대한 아끼고 현재 갖고 있는 카드로만 낼 수 있는지 우선적으로 확인
-//  이때 주의할 점은, 뽑은 카드 중 당장은 필요없더라도 추후 다른 카드와 함께 사용할 수 있는 경우가 있음
-//  따라서 이전에 뽑은 카드들까지 함께 고려해야 함
-//      그리고 이것을 '범위'로 구현
-// 부분문제 분해:
-//  removed_cards: 제출한 카드
-//  for i in cards: i+2씩 늘어남
-//      i~cards 중 removed_cards 에 포함된 카드는 제외
-//      카드 중 만들 수 있는 조합을 모두 생성
-//      조합 중 n+1을 만족하는 조합만 걸러냄
-//      그 조합들 중 코인을 가장 적게 사용하는 조합을 찾음
-//      그 조합을 removed_cards에 넣고 반복
+//  x+y=n+1이라면, 카드 x는 항상 카드 y랑만 낼 수 있음
+//  현재 가진 카드 x와 y가 있다고 했을 때, 뽑은 카드와 x를 함께 낼 수 있다면 뽑은 카드는 항상 y와 같은 수임
+//  즉, 코인을 최대한 아끼고 카드를 내는게 유리함. 어차피 낼 수 있다면 수는 같기 때문
+//  이때 한 가지 고려해야 될 점은, 뽑은 카드를 당장 쓰지 않더라도 코인을 써서 교환 후 나중에 쓸 수 있다는 것임
+//      한번 버리면 끝나기 때문
+//  즉, 이전에 버린 카드들까지 함께 고려해야 한다. 따라서 범위를 기준으로 카드를 뽑도록 함
+//  이미 사용한 카드들을 제외하고 2씩 범위가 늘어남. 이 범위 안에서 카드 두 장을 뽑도록 하면 됨
+// 부분문제 분해: 
+//  removed_cards=[]: 선택된 카드
+//  for n/3~n까지 i+=2:
+//      현재 사용가능한 카드=cards에서 removed_cards 제외
+//      나올 수 있는 조합 구하기
+//      조합 중 n+1을 만족하는 조합만 구하기
+//      n+1을 만족하는 조합 중 코인을 가장 적게 사용하는 조합 구하기
+//      해당 조합을 removed_cards에 push
 
 function solution(coin, cards) {
-    let round = 1;
-    const n = cards.length; 
+    let round = 1; 
+    
+    const n = cards.length;
     const target = n + 1;
     const init = Math.floor(n / 3);
     const removed_cards = [];
     
-    for (let i = init + 2; i <= n + 1; i+= 2) {
-        const current_cards = cards.slice(0, i)
-            .filter(el => !removed_cards.includes(el));
-        
+    for (let i = init + 1; i < n; i += 2) {
+        const current_cards = cards.slice(0, i + 1).filter(el => !removed_cards.includes(el));
         const combinations = getCombinations(current_cards, 2);
         
         const possible_combinations = getPossibleCombinations(combinations, target);
-        if (possible_combinations.length < 0) break;
+        if (possible_combinations.length <= 0) break;
         
-        let c = Infinity;
-        let selectedCombi = null;
+        let c = Infinity; 
+        let selectedCombi = [];
         for (const combi of possible_combinations) {
             const need = getCoin(combi, cards, init);
             
@@ -48,7 +46,6 @@ function solution(coin, cards) {
                 selectedCombi = combi;
             }
         }
-        
         coin -= c;
         if (coin < 0) break;
         
@@ -72,24 +69,25 @@ function solution(coin, cards) {
     }
     
     function getPossibleCombinations(combinations, target) {
-        const results = [];
+        let results = [];
         
-        for (const combi of combinations) {
+        combinations.forEach((combi) => {
             if (combi[0] + combi[1] === target) results.push([combi[0], combi[1]]);
-        }
+        });
         
         return results;
     }
     
-    function getCoin(combi, origin, init) {
+    function getCoin(combi, cards, init) {
         let cnt = 0; 
         
-        const needCoinCards = origin.slice(init);
-        if (needCoinCards.includes(combi[0])) cnt++;
-        if (needCoinCards.includes(combi[1])) cnt++;
+        const pull_cards = cards.slice(init);
+        
+        if (pull_cards.includes(combi[0])) cnt++;
+        if (pull_cards.includes(combi[1])) cnt++;
         
         return cnt;
     }
     
-    return round; 
+    return round;
 }
