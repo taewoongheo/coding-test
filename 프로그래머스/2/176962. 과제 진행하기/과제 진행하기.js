@@ -1,73 +1,69 @@
-// 규칙:
-//  과제 시작 시각에 시작
-//  과제 진행중일 때 새로운 과제가 들어오면 새로 들어온 과제 시작
-//  현재 진행중인 과제가 없다면 아까 멈춘 과제 다시 시작
-// 문제요약: 과제가 끝난 순서대로 이름을 반환
+// 규칙: 
+//  과제는 시간이 되면 무조건 시작, 기존 과제는 멈춤
+//  현재 진행할 과제가 없다면 아까 멈춰놨던 과제를 이어서 마저 진
+//  최근에 멈춘 과제부터 시작
+// 문제요약: 과제가 끝난 순서대로 이름을 리턴
+// 알고리즘 선택: 
+//  구현
 // 부분문제 분해: 
-//  plans의 start를 모두 분 단위로 변환 후 오름차순 정렬
-//  tasks=[]: 진행중인 과제들
-//      {name: 이름, need: 남은시간}
-//  current=plans.shift(): 현재 진행중인 과제
-//  time=curent.start: 현재시각
-//  for plans:
-//      next: 다음과제
-//      remain=next.start - time: 현재과제가 다음과제까지 남은 시간
-//      time=next.start: 다음시간으로 업데이트
-//      nextTasks=[next]: tasks에 복사할 배열, 상태 업데이트
-//      for tasks: 
-//          [name, need] = tasks
-//          if (remain >= need): 필요시간보다 다음과제까지 남은 시간이 많거나 같은 경우
-//              remain-=need
-//              answer.push(task)
-//          else (remain < need): 필요시간보다 남은 시간이 모자란 경우
-//              remain = 0
-//              nextTasks.push(task): 끝내지 못했으므로 다음 일과에 추가
+//  시작시각을 분으로 파싱, 오름차순 정렬
+//  현재 시각=첫번째 과제의 시작시각
+//  for 두번째과제부터 끝까지:
+//      다음과제와 현재시각의 차를 계산
+//      for 대기중인 과제:
+//          대기중인 과제들에서 차만큼 차감
+//      현재시각 갱신
 
 function solution(plans) {
     var answer = [];
     
-    const timeToMinute = (time) => {
-        let ret = 0;
+    const timeToNum = (time) => {
+        let minute = 0; 
         
-        const [hour, minute] = time.split(':').map(Number);
+        const [h, m] = time.split(':').map(Number);
         
-        ret += hour * 60;
-        ret += minute;
+        minute += h * 60;
+        minute += m;
         
-        return ret;
+        return minute;
     }
     
-    plans = plans.sort((a, b) => timeToMinute(a[1]) - timeToMinute(b[1]));
+    plans = plans.sort((a, b) => timeToNum(b[1]) - timeToNum(a[1]));
     
-    let current = { name: plans[0][0], need: Number(plans[0][2]) };
-    let time = timeToMinute(plans[0][1]);
-    let tasks = [current];
+    const first = plans.pop();
+    let time = timeToNum(first[1]);
+    let stop = [{ name: first[0], need: first[2] }];
     
-    for (let i = 1; i < plans.length; i++) {
-        const next = plans[i];
+    while (plans.length) {
+        const next = plans.pop();
+        const nname = next[0];
+        const nstart = timeToNum(next[1]);
+        const nneed = next[2];
         
-        // 다음 과제까지 남은 시간
-        let remain = timeToMinute(next[1]) - time;
-        const nextTasks = [{ name: next[0], need: Number(next[2]) }];
-        for (let j = 0; j < tasks.length; j++) {
-            let { name, need } = tasks[j];
+        let remain = nstart - time;
+        let newStop = [{ name: nname, need: nneed }];
+        for (let i = 0; i < stop.length; i++) {
+            const cur = stop[i];
+            const cname = cur.name;
+            let cneed = cur.need;
             
-            if (remain >= need) {
-                remain -= need;
-                answer.push(name);
+            if (remain >= cneed) {
+                // 남은 시간이 더 많다면,
+                remain -= cneed;
+                answer.push(cname);
             } else {
-                need -= remain;
+                // 남은 시간이 더 적다면,
+                cneed -= remain;
                 remain = 0;
-                nextTasks.push({ name: name, need: need });
+                newStop.push({ name: cname, need: cneed });
             }
         }
-        
-        time = timeToMinute(next[1]);
-        tasks = [...nextTasks];
+        time = nstart;
+        stop = [...newStop];
     }
     
-    for (let i = 0; i < tasks.length; i++) {
-        answer.push(tasks[i].name);
+    for (let i = 0; i < stop.length; i++) {
+        answer.push(stop[i].name);
     }
     
     return answer;
