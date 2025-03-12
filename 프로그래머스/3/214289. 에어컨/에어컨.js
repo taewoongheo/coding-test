@@ -1,31 +1,39 @@
-// 문제요약: 에어컨의 최소 소비 전력 구하기
+// 규칙:
+//  에어컨 희망온도 설정, 원하는 값으로 변경가능
+//  실내온도는 희망온도 방향으로 +- 1도, 같으면 안변함, 변하면 a전력, 유지하면 b전력
+//  에어컨 끄면 실내온도가 외부온도 방향으로 변함
+// 문제요약: 승객이 탑승중인 시간에 실내온도를 t1~t2로 유지하기 위한 전력의 최솟값 구하기
 // 알고리즘 선택: 
-//  에어컨을 올리거나 내리거나 유지하거나 끌 수 있음
-//  이때 에어컨을 올리는 경우를 생각해보면, 
-//      현재온도가 22도일 때 희망온도가 24,25,26이라면 모두 동작은 같다(+1)
-//      따라서 희망온도는 고려하지 않아도 된다
-//  특정 시간대에서 다음 온도를 조절할 수 있음. 이때 4개의 분기가 생기는데, 이전까지의 상태는 계속 동일함
-//  즉, 중복이 발생
-//  또한 각 상태의 값을 소비전력으로 두고 최소값만 뽑는다면, 그 값은 해당 부분문제까지의 최적해가 됨
-//  => dp
-//      고려해야할 상태: 특정 시간대(탑승여부), 소비전력, 현재 온도
-//          네 가지 동작이 가능
-//          1. 다음 온도를 올리는 경우
-//              dp[i][j] = min(dp[i + 1][j + 1] + a, )
-//          2. 다음 온도를 내리는 경우
-//              dp[i][j] = min(dp[i + 1][j - 1] + a, )
-//          3. 다음 온도를 유지하는 경우
-//              dp[i][j] = min(dp[i + 1][j] + b, )
-//          4. 에어컨을 끄는 경우
-//              dp[i][j] = min(dp[i + 1][j + 외부온도 방향으로 += 1])
+//  매 시각마다 온도가 1도 단위로 변함
+//  만약 실내온도가 22도이고, 희망온도가 23, 24, 25 라면 동작이 모두 동일함(+1)
+//  따라서 희망온도는 고려하지 않아도 됨. 단지 온도가 오르고 내리는 것을 보면 됨
+//  dp 고려
+//      상태: 실내온도, onboard, 소비전력
+//          dp[onboard][실내온도]=소비전력: onboard[i]일 때 실내온도가 j라면 그때의 최소 소비전력
+//          onboard, 실내온도일 때 가장 작은 소비전력을 고르면 그것이 부분문제의 최적해가 됨
+//              최소소비전력을 계속 이어나가면 전체문제의 최적해가 되기 때문
+//          독립적인 부분문제?
+//              온도를 선택할 때 온도가 이전 값에 영향을 받는가? x
+//              i, j라는 최소소비전력에 여러 경로로 도달가능하므로 각 부분문제는 독립적
+//      dp[i][j] 일 때, 4가지 동작이 가능
+//          1. 온도 올리기
+//              dp[i + 1][j + 1] = min(dp[i][j] + a, )
+//          2. 온도 내리기
+//              dp[i + 1][j - 1] = min(dp[i][j] + a, )
+//          3. 온도 유지하기
+//              dp[i + 1][j] = min(dp[i][j] + b, )
+//          4. 에어컨 끄기
+//              dir=+-1(외부방향)
+//              dp[i + 1][j + dir] = min(dp[i][j], )
 // 부분문제 분해: 
-//  dp[onboard][51]
-//  for isInPerson in onboard:
-//      for 0~51 in temp:
-//          dp 네 가지 동작
-//  마지막 dp 배열에서 최소 소비 전력 구하기(탑승 여부까지 고려해야 됨)
+//  온도의 범위가 -10~40이므로 t1, t2, temp에 각각 +10
+//  dp[onboard][0~51]
+//  dp[0][temperature] = 0: onboard가 0일 때 현재온도를 외부온도로 맞춤, 소비전력은 0
+
 
 function solution(temperature, t1, t2, a, b, onboard) {
+    var answer = Infinity;
+    
     temperature += 10;
     t1 += 10;
     t2 += 10;
@@ -35,16 +43,15 @@ function solution(temperature, t1, t2, a, b, onboard) {
     dp[0][temperature] = 0;
     
     for (let i = 0; i < onboard.length - 1; i++) {
-        const isInPerson = onboard[i];
         for (let j = 0; j <= 50; j++) {
             if (dp[i][j] === Infinity) continue;
-            if (isInPerson === 1 && (j > t2 || j < t1)) continue;
-
+            if (onboard[i] && (j < t1 || j > t2)) continue;
+            
             // 온도 올리기
-            if (j < 50) dp[i + 1][j + 1] = Math.min(dp[i][j] + a, dp[i + 1][j + 1]);
+            dp[i + 1][j + 1] = Math.min(dp[i][j] + a, dp[i + 1][j + 1]);
             
             // 온도 내리기
-            if (j > 0) dp[i + 1][j - 1] = Math.min(dp[i][j] + a, dp[i + 1][j - 1]);
+            dp[i + 1][j - 1] = Math.min(dp[i][j] + a, dp[i + 1][j - 1]);
             
             // 온도 유지하기
             dp[i + 1][j] = Math.min(dp[i][j] + b, dp[i + 1][j]);
@@ -55,16 +62,11 @@ function solution(temperature, t1, t2, a, b, onboard) {
         }
     }
     
-    
-    let ans = Infinity;
-    const status = onboard.at(-1);
-    for (let temp = 0; temp < dp.at(-1).length; temp++) {
-        if (temp === Infinity) continue;
+    for (let i = 0; i <= 50; i++) {
+        if (onboard.at(-1) && (i < t1 || i > t2)) continue;
         
-        if (status === 1 && (temp < t1 || temp > t2)) continue;
-        
-        ans = Math.min(ans, dp.at(-1)[temp]);
+        answer = Math.min(dp.at(-1)[i], answer);
     }
     
-    return ans;
+    return answer;
 }
