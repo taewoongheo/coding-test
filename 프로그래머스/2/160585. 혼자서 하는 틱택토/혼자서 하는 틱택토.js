@@ -1,131 +1,62 @@
-// 문제요약: 주어진 보드판이 나올 수 있는 경우인지 아닌지 판단
+// 문제요약: 틱택토 규칙에 맞는 보드판인지 검사
 // 알고리즘 선택: 
-//  나올 수 없는 경우를 모두 걸러내면 된다
-//  1.O개수 < X개수인 경우
-//  2.O개수-X개수 >= 2: 2개 이상 차이나는 경우
-//  3.X만 존재
-//  4.한 줄이 완성되었는데도 계속 진행한 경우
-//  만약 한 줄 완성은 늦게 하는 경우 3개보다 많을 수 있음
-//  dfs로 게임을 진행하면서 규칙에 맞지 않으면 리턴, 만약 cnt를 끝까지 사용했다면 1
-// 부분문제 분해: 
-//  O, X 개수와 위치를 모두 카운트=>total
-//  O.length < X.length => 불가, 0
-//  O.length - X.length >= 2 => 불가, 0
-//  dfs(cnt, o):
-//      cnt를 모두 사용하면 1 리턴
-//      if (o===true): 선공이면
-//          for o 하나씩 체크
-//              대각선 성공 여부 체크
-//              if 성공 시, cnt가 남아있으면 return
-//      else: 후공이면
-//          for x 하나씩 체크
-//              대각선 성공 여부 체크
-//              if 성공 시, cnt가 남아있으면 return
+//  안되는 경우를 선택
+//  상태: O, X, 보드
+//  1. O개수 < X개수
+//  2. O개수-X개수 > 1
+//  3. O승리 시, O개수-X개수!==1
+//  4. O승리 시, X도 승리
+//  5. X승리 시, O개수!==X개수
 
 function solution(board) {
-    var answer = 0;
     
-    let total = 0;
-    const o = [];
-    const x = [];
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            if (board[i][j] === 'O') {
-                o.push([i, j]);
-                total++;
-            }   
-            else if (board[i][j] === 'X') {
-                x.push([i, j]);
-                total++;
-            }
-        }
-    }
+    board = board.map(el => el.split('')).flat();
     
-    if (o.length < x.length) return 0;
-    if (o.length - x.length >= 2) return 0;
+    let oCnt = 0;
+    let xCnt = 0;
+    board.forEach(el => {
+        if (el === 'O') oCnt++;
+        else if (el === 'X') xCnt++;
+    });
     
-    const v = Array.from({length: 3}, () => 
-                        Array.from({length: 3}, () => 0));
-    dfs(total, true);
+    if (oCnt < xCnt) return 0;
     
-    function dfs(cnt, f) {
-        if (cnt === 0) {
-            answer = 1;
-            return;
-        }
-        
-        if (f) {
-            // 선공 차례
-            for (let i = 0; i < o.length; i++) {
-                const [r, c] = o[i];
-                if (v[r][c] === 1) continue;
-                
-                v[r][c] = 1;
-                if (check(v, 1) && cnt !== 1) {
-                    // 완성됐는데 더 남아있으면 안됨
-                    v[r][c] = 0;
-                    continue;
-                }
-                
-                dfs(cnt - 1, false);
-                v[r][c] = 0;
-            }
-        } else {
-            for (let i = 0; i < x.length; i++) {
-                const [r, c] = x[i];
-                if (v[r][c] === -1) continue;
-                
-                v[r][c] = -1;
-                if (check(v, -1) && cnt !== 1) {
-                    v[r][c] = 0;
-                    continue;
-                };
-                
-                dfs(cnt - 1, true);
-                v[r][c] = 0;
-            }
-        }
-    }
+    if (oCnt - xCnt > 1) return 0;
     
-    function check(v, num) {
-        // 가로
-        for (let i = 0; i < 3; i++) {
-            let cnt = 0;
-            for (let j = 0; j < 3; j++) {
-                if (v[i][j] === num) cnt++;
-                else break;
-            }
-            if (cnt === 3) return true;
-        }
-        
-        // 세로
-        for (let i = 0; i < 3; i++) {
-            let cnt = 0;
-            for (let j = 0; j < 3; j++) {
-                if (v[j][i] === num) cnt++;
-                else break;
-            }
-            if (cnt === 3) return true;
-        }
-        
-        // 위->아래 대각선
-        let cnt = 0;
-        for (let i = 0; i < 3; i++) {
-            if (v[i][i] === num) cnt++;
-            else break;
-        }
-        if (cnt === 3) return true;
-        
-        // 아래->위 대각선
-        cnt = 0; 
-        for (let i = 0; i < 3; i++) {
-            if (v[2-i][i] === num) cnt++;
-            else break;
-        }
-        if (cnt === 3) return true;
-        
-        return false;
-    }
+    const win = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
     
-    return answer;
+    let IsOWin = win.reduce((IsOWin, line) => {
+        if (
+            board[line[0]] === 'O' &&
+            board[line[1]] === 'O' &&
+            board[line[2]] === 'O'
+        ) return true;
+        return IsOWin;
+    }, false);
+    
+    let IsXWin = win.reduce((IsXWin, line) => {
+        if (
+            board[line[0]] === 'X' &&
+            board[line[1]] === 'X' &&
+            board[line[2]] === 'X'
+        ) return true;
+        return IsXWin;
+    }, false);
+    
+    if (IsOWin && oCnt - xCnt !== 1) return 0; 
+    
+    if (IsOWin && IsXWin) return 0;
+    
+    if (IsXWin && oCnt !== xCnt) return 0;
+    
+    return 1;
 }
