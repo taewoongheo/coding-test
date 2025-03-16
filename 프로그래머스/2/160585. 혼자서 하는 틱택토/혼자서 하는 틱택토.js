@@ -1,62 +1,52 @@
-// 문제요약: 틱택토 규칙에 맞는 보드판인지 검사
+// 문제요약: 규칙을 지켜서 나올 수 있는 틱택토인지 판단
 // 알고리즘 선택: 
-//  안되는 경우를 선택
-//  상태: O, X, 보드
-//  1. O개수 < X개수
-//  2. O개수-X개수 > 1
-//  3. O승리 시, O개수-X개수!==1
-//  4. O승리 시, X도 승리
-//  5. X승리 시, O개수!==X개수
+//  규칙이 안되는 경우를 모두 걸러내면 됨
+//  상태: o, x
+//  1. o 개수 < x 개수
+//  2. o 개수 - x 개수 > 1
+//  3. o 승리 && o 개수 - x 개수 !== 1
+//  4. o 승리 && x 승리
+//  5. x 승리 && o 개수 !== x 개수
 
 function solution(board) {
     
     board = board.map(el => el.split('')).flat();
     
-    let oCnt = 0;
+    let oCnt = 0; 
     let xCnt = 0;
     board.forEach(el => {
         if (el === 'O') oCnt++;
-        else if (el === 'X') xCnt++;
+        if (el === 'X') xCnt++;
     });
     
     if (oCnt < xCnt) return 0;
-    
     if (oCnt - xCnt > 1) return 0;
     
-    const win = [
-        [0, 1, 2],
+    const lines = [
+        [0, 1, 2], 
         [3, 4, 5],
         [6, 7, 8],
         [0, 3, 6],
-        [1, 4, 7],
+        [1, 4, 7], 
         [2, 5, 8],
         [0, 4, 8],
         [2, 4, 6],
     ];
-    
-    let IsOWin = win.reduce((IsOWin, line) => {
-        if (
-            board[line[0]] === 'O' &&
-            board[line[1]] === 'O' &&
-            board[line[2]] === 'O'
-        ) return true;
-        return IsOWin;
+
+    const isOWin = lines.reduce((ret, item) => {
+        const res = board[item[0]] === 'O' && board[item[1]] === 'O' && board[item[2]] === 'O';
+        if (res) return true;
+        return ret
+    }, false);
+    const isXWin = lines.reduce((ret, item) => {
+        const res = board[item[0]] === 'X' && board[item[1]] === 'X' && board[item[2]] === 'X';
+        if (res) return true;
+        return ret
     }, false);
     
-    let IsXWin = win.reduce((IsXWin, line) => {
-        if (
-            board[line[0]] === 'X' &&
-            board[line[1]] === 'X' &&
-            board[line[2]] === 'X'
-        ) return true;
-        return IsXWin;
-    }, false);
-    
-    if (IsOWin && oCnt - xCnt !== 1) return 0; 
-    
-    if (IsOWin && IsXWin) return 0;
-    
-    if (IsXWin && oCnt !== xCnt) return 0;
+    if (isOWin && oCnt - xCnt !== 1) return 0;
+    if (isOWin && isXWin) return 0;
+    if (isXWin && oCnt !== xCnt) return 0;
     
     return 1;
 }
