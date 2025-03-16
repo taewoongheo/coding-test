@@ -1,92 +1,89 @@
-// 게임 룰
-//  1~n 카드뭉치와 coin이 있음
-//  n/3개의 카드를 가지고 시작
-//  라운드마다 카드 두 장 뽑음, 코인 써서 교환가능
-//  카드의 합이 n+1 이 되도록 못내면 거기서 끝
-// 문제요약: 도달가능한 최대 라운드 수 구하기
+// 룰
+//  카드 n/3장 뽑아 시작
+//  라운드 시작 시 2장 뽑고, 뽑은 카드를 코인을 써서 교환가능
+//  n+1이 되도록 카드 두 장을 낼 수 있으면 다음 라운드로 진행
+// 문제요약: 도달가능한 최대 라운드 구하기
 // 알고리즘 선택: 
-//  x+y=n+1이라면, 카드 x는 항상 카드 y랑만 낼 수 있음
-//  현재 가진 카드 x와 y가 있다고 했을 때, 뽑은 카드와 x를 함께 낼 수 있다면 뽑은 카드는 항상 y와 같은 수임
-//  즉, 코인을 최대한 아끼고 카드를 내는게 유리함. 어차피 낼 수 있다면 수는 같기 때문
-//  이때 한 가지 고려해야 될 점은, 뽑은 카드를 당장 쓰지 않더라도 코인을 써서 교환 후 나중에 쓸 수 있다는 것임
-//      한번 버리면 끝나기 때문
-//  즉, 이전에 버린 카드들까지 함께 고려해야 한다. 따라서 범위를 기준으로 카드를 뽑도록 함
-//  이미 사용한 카드들을 제외하고 2씩 범위가 늘어남. 이 범위 안에서 카드 두 장을 뽑도록 하면 됨
+//  카드 두 장을 뽑아서 내야됨. 이때 최대로 도달하기 위해선 코인을 최대한 아껴야 됨
+//      x+y=n+1 이라고 했을 때, 둘 다 갖고 있다고 해보자
+//      만약 뽑은 카드가 z라고 했을 때, x+z=n+1을 만족한다면, z=y임
+//      즉, n+1을 만들기 위해 특정 카드가 가질 수 있는 조합의 숫자는 정해져 있으므로 코인으로 뽑던 가진 카드를 사용하던 똑같음
+//      그래서 코인을 최대한 아껴야 나중에 필요할 때 쓸 수 있음
+//  주의할 점은, 지금 당장 필요없더라도 코인을 사용해 미리 교환해놓을 수 있다는 것
+//  따라서 범위로 카드를 고려하고, 매 라운드 마다 범위 내에서 코인을 써서 교환할 수 있도록 함
+//  이렇게 되면 이미 지나쳤던 카드도 필요해지면 다시 뽑을 수 있음
 // 부분문제 분해: 
-//  removed_cards=[]: 선택된 카드
-//  for n/3~n까지 i+=2:
-//      현재 사용가능한 카드=cards에서 removed_cards 제외
-//      나올 수 있는 조합 구하기
-//      조합 중 n+1을 만족하는 조합만 구하기
-//      n+1을 만족하는 조합 중 코인을 가장 적게 사용하는 조합 구하기
-//      해당 조합을 removed_cards에 push
+//  뽑은카드들=[]: 이미 제출한 카드
+//  for cards in i+=2:
+//      cards.filter(뽑은카드들)
+//      현재 카드들 중 가능한 조합 구하기
+//      가능한 조합 중 n+1을 만족하는 조합 구하기
+//      해당 조합 중 코인을 가장 적게 사용하는 조합 구하기
+//      그만큼 코인 제외, 라운드 증가
 
 function solution(coin, cards) {
     let round = 1; 
-    
+    const removedCards = [];
     const n = cards.length;
-    const target = n + 1;
-    const init = Math.floor(n / 3);
-    const removed_cards = [];
+    const init = n / 3;
+    const after = cards.slice(init);
     
-    for (let i = init + 1; i < n; i += 2) {
-        const current_cards = cards.slice(0, i + 1).filter(el => !removed_cards.includes(el));
-        const combinations = getCombinations(current_cards, 2);
+    for (let i = init + 2; i <= n + 1; i += 2) {
+        const currentCards = cards.slice(0, i).filter(el => !removedCards.includes(el));
         
-        const possible_combinations = getPossibleCombinations(combinations, target);
-        if (possible_combinations.length <= 0) break;
+        const combinations = getCombinations(currentCards, 2);
         
-        let c = Infinity; 
-        let selectedCombi = [];
-        for (const combi of possible_combinations) {
-            const need = getCoin(combi, cards, init);
+        const possibleCombinations = getPossibleCombinations(combinations);
+        if (possibleCombinations.length < 1) break;
+        
+        let v = Infinity;
+        let selectedCombi = null;
+        for (const combi of possibleCombinations) {
+            const need = getCoin(combi);
             
-            if (need < c) {
-                c = need;
+            if (need < v) {
+                v = need;
                 selectedCombi = combi;
             }
         }
-        coin -= c;
+        coin -= v;
         if (coin < 0) break;
         
-        removed_cards.push(...selectedCombi);
         round++;
+        removedCards.push(...selectedCombi);
     }
     
     function getCombinations(cards, cnt) {
         const results = [];
         
         if (cnt === 1) return cards.map(el => [el]);
-        
         cards.forEach((card, idx, arr) => {
             const rest = arr.slice(idx + 1);
-            const combinations = getCombinations(rest, cnt - 1);
-            const attached = combinations.map(combi => [card, ...combi]);
-            results.push(...attached);
+            const attached = getCombinations(rest, cnt - 1);
+            const arrs = attached.map(combi => [card, ...combi]);
+            results.push(...arrs);
         });
         
         return results;
     }
     
-    function getPossibleCombinations(combinations, target) {
-        let results = [];
+    function getPossibleCombinations(combinations) {
+        const results = [];
         
-        combinations.forEach((combi) => {
-            if (combi[0] + combi[1] === target) results.push([combi[0], combi[1]]);
-        });
+        for (const combi of combinations) {
+            if (combi[0] + combi[1] === n + 1) results.push(combi);
+        }
         
         return results;
     }
     
-    function getCoin(combi, cards, init) {
-        let cnt = 0; 
+    function getCoin(combi) {
+        let need = 0; 
         
-        const pull_cards = cards.slice(init);
+        if (after.includes(combi[0])) need++;
+        if (after.includes(combi[1])) need++;
         
-        if (pull_cards.includes(combi[0])) cnt++;
-        if (pull_cards.includes(combi[1])) cnt++;
-        
-        return cnt;
+        return need;
     }
     
     return round;
