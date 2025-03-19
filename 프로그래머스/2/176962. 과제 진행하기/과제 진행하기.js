@@ -1,69 +1,60 @@
 // 규칙: 
-//  과제는 시간이 되면 무조건 시작, 기존 과제는 멈춤
-//  현재 진행할 과제가 없다면 아까 멈춰놨던 과제를 이어서 마저 진
-//  최근에 멈춘 과제부터 시작
-// 문제요약: 과제가 끝난 순서대로 이름을 리턴
+//  과제는 시각이 되면 바로 시작, 기존에 진행중인 과제가 있으면 그걸 멈춤
+//  현재 시각에 할 거 없으면 미뤄둔 과제 진행(최근에 멈춘 것부터)
+// 문제 요약: 과제가 끝난 순서대로 반환
 // 알고리즘 선택: 
 //  구현
-// 부분문제 분해: 
-//  시작시각을 분으로 파싱, 오름차순 정렬
-//  현재 시각=첫번째 과제의 시작시각
-//  for 두번째과제부터 끝까지:
-//      다음과제와 현재시각의 차를 계산
-//      for 대기중인 과제:
-//          대기중인 과제들에서 차만큼 차감
-//      현재시각 갱신
+//  시작시각을 기준으로 정렬
+//      분 단위로 변경
+//  stop 배열을 만들고, 여기에 첫번째과제 넣고 시작
+//  time=첫번째과제 시작 시각
+//  for 나머지 과제들:
+//      다음 과제의 시작시각과 현재시각 차이
+//      for stop:
+//          차이를 모두 소모할 때까지 stop 배열 갱신
+//      stop 배열 업데이트
+//   stop에 남아있는 순서대로 모두 출ㄹ력
 
 function solution(plans) {
     var answer = [];
     
-    const timeToNum = (time) => {
+    const timeToMinute = (time) => {
         let minute = 0; 
         
         const [h, m] = time.split(':').map(Number);
-        
         minute += h * 60;
         minute += m;
         
         return minute;
     }
     
-    plans = plans.sort((a, b) => timeToNum(b[1]) - timeToNum(a[1]));
-    
-    const first = plans.pop();
-    let time = timeToNum(first[1]);
-    let stop = [{ name: first[0], need: first[2] }];
+    plans = plans.map(el => [el[0], timeToMinute(el[1]), el[2]])
+                .sort((a, b) => b[1] - a[1]);
+    let stop = [plans.pop()];
+    let time = stop[0][1];
     
     while (plans.length) {
         const next = plans.pop();
-        const nname = next[0];
-        const nstart = timeToNum(next[1]);
-        const nneed = next[2];
         
-        let remain = nstart - time;
-        let newStop = [{ name: nname, need: nneed }];
+        let diff = next[1] - time;
+        time = next[1];
+        const newStop = [next];
         for (let i = 0; i < stop.length; i++) {
             const cur = stop[i];
-            const cname = cur.name;
-            let cneed = cur.need;
-            
-            if (remain >= cneed) {
-                // 남은 시간이 더 많다면,
-                remain -= cneed;
-                answer.push(cname);
+            if (diff >= cur[2]) {
+                diff -= cur[2];
+                answer.push(cur[0]);
             } else {
-                // 남은 시간이 더 적다면,
-                cneed -= remain;
-                remain = 0;
-                newStop.push({ name: cname, need: cneed });
+                cur[2] -= diff;
+                diff = 0;
+                newStop.push(cur);
             }
         }
-        time = nstart;
         stop = [...newStop];
     }
     
     for (let i = 0; i < stop.length; i++) {
-        answer.push(stop[i].name);
+        answer.push(stop[i][0]);
     }
     
     return answer;
