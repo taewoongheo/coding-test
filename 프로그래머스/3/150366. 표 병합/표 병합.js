@@ -74,72 +74,54 @@ function solution(commands) {
             const c2 = parseInt(comm[4]);
             const cell1 = cells[r1][c1];
             const cell2 = cells[r2][c2];
+            
+            const memoCell1Label = cell1.label;
+            const memoCell2Label = cell2.label;
+            
+            if (cell1.label === cell2.label) continue;
+            if ((r1 === r2) && (c1 === c2)) continue;
+                
+            cell1.label = labelIdx;
+            cell2.label = labelIdx;
+            map.set(labelIdx, [cell1, cell2]);
 
-            // 같은 셀이거나 이미 같은 라벨을 가진 경우 무시
-            if ((r1 === r2 && c1 === c2) || (cell1.label !== null && cell1.label === cell2.label)) continue;
-
-            const newLabel = labelIdx++;
-            const newGroup = [];
-
-            // cell1의 기존 그룹 처리
-            if (cell1.label !== null) {
-                const group1 = map.get(cell1.label);
-                for (const cell of group1) {
-                    cell.label = newLabel;
-                    newGroup.push(cell);
+            if (memoCell1Label !== null) {
+                const lcells = map.get(memoCell1Label);
+                for (const lcell of lcells) {
+                    lcell.label = labelIdx;
+                    map.get(labelIdx).push(lcell);
                 }
-                map.delete(cell1.label); // 기존 그룹 삭제
-            } else {
-                cell1.label = newLabel;
-                newGroup.push(cell1);
+            }
+            if (memoCell2Label !== null) {
+                const lcells = map.get(memoCell2Label);
+                for (const lcell of lcells) {
+                    lcell.label = labelIdx;
+                    map.get(labelIdx).push(lcell);
+                }
             }
 
-            // cell2의 기존 그룹 처리
-            if (cell2.label !== null) {
-                const group2 = map.get(cell2.label);
-                for (const cell of group2) {
-                    cell.label = newLabel;
-                    newGroup.push(cell);
-                }
-                map.delete(cell2.label); // 기존 그룹 삭제
-            } else {
-                cell2.label = newLabel;
-                newGroup.push(cell2);
-            }
-
-            // 새 그룹 맵에 저장
-            map.set(newLabel, newGroup);
-
-            // 값 결정 (cell1 우선)
             if (cell1.value !== '') {
-                // cell1에 값이, 있다면 모든 병합된 셀은 cell1의 값을 가짐
-                for (const cell of newGroup) {
-                    cell.value = cell1.value;
+                for (const lcell of map.get(cell1.label)) {
+                    lcell.value = cell1.value;
                 }
             } else if (cell2.value !== '') {
-                // cell1에 값이 없고 cell2에 값이 있으면, 모든 병합된 셀은 cell2의 값을 가짐
-                for (const cell of newGroup) {
-                    cell.value = cell2.value;
+                for (const lcell of map.get(cell2.label)) {
+                    lcell.value = cell2.value;
                 }
             }
-            // 둘 다 값이 없으면 아무 작업도 안함
+
+            labelIdx++;
         } else if (comm[0] === 'UNMERGE') {
             // "UNMERGE r c"
             const r = parseInt(comm[1]);
             const c = parseInt(comm[2]);
             const cell = cells[r][c];
-            
-              // 병합되지 않은 셀인 경우 무시
-            if (cell.label === null) continue;
-            
-            const cl = cell.label;
             const value = cell.value;
             
-            for (const lcell of map.get(cl)) {
+            for (const lcell of map.get(cell.label)) {
                 lcell.label = null;
                 lcell.value = '';
             }
-            cell.label = null;
             cell.value = value;
         } else if (comm[0] === 'PRINT') {
             // "PRINT r c"
