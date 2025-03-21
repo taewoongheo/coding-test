@@ -1,24 +1,23 @@
 function solution(storey) {
-    var result = 0;
+    var answer = 0;
     
     while (storey) {
         const cur = storey % 10;
-        const next = (storey / 10) % 10;
-        
-        console.log(storey);
-        
-        if (cur > 5) {
-            result += 10 - cur;
-            storey += 10;
-        } else if (cur < 5) {
-            result += cur;
-        } else {
-            result += cur;
-            storey += next >= 5 ? 10 : 0;
-        }
-        
         storey = Math.floor(storey / 10);
+        
+        if (cur < 5) {
+            answer += cur;
+        } else if (cur > 5) {
+            answer += (10 - cur);
+            storey += 10;
+        } else {
+            const next = storey % 10;
+            answer += cur;
+            if (next > 5) {
+                storey += 10;
+            }
+        }
     }
     
-    return result;
+    return answer;
 }
