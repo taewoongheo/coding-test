@@ -1,36 +1,25 @@
+// 문제: (x,y)->(r,c)로 k만큼 움직여 탈출, 문자열이 사전순으로 가장 빠른 경로 구하기
+// k만큼 움직여야 한다=cnt를 세서 정확히 k가 되는 시점인 순간만 걸러내면 됨
+// 사전순 d l r u 이므로 bfs를 돌릴 때 이 순서대로 돌리면 문자열 사전 순으로 나옴
+// 방문한 노드 재방문 가능, k가 넘치는 순간 거기서 break
+// 메모리초과
+//  사전 순으로 방문하기 때문에 d->l->u->r 으로 제자리로 돌아오는 경우는 제외해야됨
+//      제자리로 돌아오는건 d->l->r->u 이기 때문
+//  근데 왼쪽, 오른쪽, 위쪽 다 똑같음. 그러니까 제자리로 돌아왔을 때 "dlru" 순으로 온게 아니라면 다 제외시켜야 함
+//  거리가 커질수록 "ddllrruu" 패턴임
+// 그리디
+//  높이 비교, S.r > E.r 이면 S.r-E.r만큼 d
+//      else(S.r <= E.r) 
+//          왼쪽비교, S.x > E.x 면 S.x-E.x 만큼 l
+//              else(S.x <= E.x) 이면
+//                  오른쪽 비교, S.x < E.x 이면 E.x-S.x 만큼 r
+//                      else(S.x===E.x) 이면 E.r-S.r 만큼 u
+//  와 근데 최단경로가 아님.
+
 function solution(n, m, x, y, r, c, k) {
-    var answer = '';
+    var answer = 'impossible';
+   
     
-    const dist = Math.abs(x - r) + Math.abs(y - c);
-    if (dist > k) return "impossible";
-    if (k > dist && ((k - dist) % 2 !== 0)) return "impossible";
-    
-    const move = [[1, 0, 'd'], [0, -1, 'l'], [0, 1, 'r'], [-1, 0, 'u']];
-    
-    x--;
-    y--;
-    r--;
-    c--;
-    
-    let cx = x;
-    let cy = y;
-    while (k > 0) {
-        for (let i = 0; i < 4; i++) {
-            const nx = cx + move[i][0];
-            const ny = cy + move[i][1];
-            const dir = move[i][2];
-            
-            if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
-            const dist = Math.abs(nx - r) + Math.abs(ny - c);
-            if (dist <= k - 1) {
-                k--;
-                cx = nx;
-                cy = ny;
-                answer += dir;
-                break;
-            }
-        }
-    }
     
     return answer;
 }
