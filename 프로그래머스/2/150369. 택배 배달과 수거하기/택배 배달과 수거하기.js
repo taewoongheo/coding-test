@@ -1,58 +1,48 @@
-// greedy: cap만큼 최대로 채워서 먼 곳에 있는 집부터 처리
-//  왜냐하면 거리가 최소가 되려면 먼 곳에 있는 집부터 처리해야 거리가 줄어들기 때문
-//  배달관점에서 보면 cap만큼 최대로 채워서 최대로 배달하면 됨
-//  수거관점에서 보면 cap만큼 최대로 채워오면 됨
-//  cap의 개수는 넘치지만 않으면 상관없음
-//  배달과 수거를 따로 분리해서 처리
-// 부분문제 분해: 
-//  배달해야 하는 가장 멀리있는 집, 수거해야 하는 가장 멀리 있는 집의 인덱스를 구함
-//  매 루프마다 cap만큼 처리할 수 있으니까, 
-//      배달, 수거를 각각 최대 cap만큼 항상 처리함
-//  더해야 하는 거리는 배달, 수거 중 더 멀리 있는 집의 거리만큼
-//  만약 두 거리 모두 0이 되면 배달, 수거가 완료됐다는 뜻이므로 종료
+// 문제: 모든 집에 배달과 수거를 할 때 최소 이동거리 구하기
+// 생각해보면 가장 먼 집부터 처리해야 이동거리가 최소가 됨
+// 또한 cap만큼 가지고 출발할 수 있는데, 한번 출발할 때 최대한 배달하고 최대한 수거해야 함
+// 이때 얼마나 갖고 출발할 지는 상관없음. 
+//  왜냐하면 가능한만큼 최대로 배달하고 돌아올 때 수거한다고 했을 때, 현재 cap을 항상 0으로 맞출 수 있기 때문
+//  따라서 맨 끝 집부터 cap만큼 배달하고, 맨 끝 집부터 cap만큼 수거하면 된다
+// 두 배열을 따로 움직이도록, 이때 더 먼거리를 기준으로 거리를 증가시키면 된다
 
 function solution(cap, n, deliveries, pickups) {
-    var answer = 1;
+    var answer = 0;
     
-    function getLastHomeIdx(arr) {
-      var len  = arr.length;
-      for(var i = len-1;i>=0;i--){
-        if(arr[i]!==0){
-          return i;
-        }
-        else{
-          arr.pop();
-        }
-      }
-      return -1;
+    while (true) {
+        const dIdx = getLast(deliveries);
+        const pIdx = getLast(pickups);
+        
+        if (dIdx === -1 && pIdx === -1) break;
+        
+        update(deliveries, cap);
+        update(pickups, cap);
+        
+        answer += (Math.max(dIdx, pIdx) + 1) * 2;
     }
     
-    function update(arr, idx, cap) {
-        while (idx !== -1) {
-            let lastIdx = getLastHomeIdx(arr);
-            if (cap >= arr[lastIdx]) {
-                cap -= arr[lastIdx];
-                arr[lastIdx] = 0;
-                lastIdx--;
+    function getLast(arr) {
+        let idx = arr.length - 1;
+        while (arr.length) {
+            if (arr.at(-1) !== 0) return idx;
+            else arr.pop();
+            idx--;
+        }
+        
+        return idx;
+    }
+    
+    function update(arr, cap) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            if (arr[i] > cap) {
+                arr[i] -= cap;
+                return;
             } else {
-                arr[lastIdx] -= cap;
-                break;
+                cap -= arr[i];
+                arr[i] = 0;
             }
         }
     }
     
-    while (true) {
-        const lastDeliverIdx = getLastHomeIdx(deliveries);
-        const lastPickupIdx = getLastHomeIdx(pickups);
-        
-        update(deliveries, lastDeliverIdx, cap);
-        update(pickups, lastPickupIdx, cap);
-        
-        if (lastDeliverIdx === -1 && lastPickupIdx === -1) break;
-        
-        const longest = Math.max(lastDeliverIdx, lastPickupIdx);
-        answer += (longest + 1) * 2;
-    }
-    
-    return answer - 1;
+    return answer;
 }
