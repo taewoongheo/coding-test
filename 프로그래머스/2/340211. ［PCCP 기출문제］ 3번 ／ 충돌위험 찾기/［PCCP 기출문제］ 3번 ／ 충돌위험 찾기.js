@@ -1,61 +1,52 @@
+// 문제: 로봇들이 경로로 이동 시 충돌위험의 개수 구하기
+// points<=100, routes(=로봇 수)<=100
+// 로봇은 항상 최단경로로 이동(r좌표 우선) => bfs x, 단순 계산으로 가능
+// 시간대별로 로그를 기록하는 map을 하나 만들고, map의 각 시간을 순회하며 동일한 좌표가 있는지 검사
+
 function solution(points, routes) {
     var answer = 0;
     
-    const robot_routes = [];
-    let maxD = 0;
-    for (let i = 0; i < routes.length; i++) {
-        const robot_route = [];
-        let cnt = 1; 
-        let tr = 0, tc = 0;
-        for (let j = 0; j < routes[i].length - 1; j++) {
-            let [sr, sc] = points[routes[i][j] - 1];
-            [tr, tc] = points[routes[i][j + 1] - 1];
-            
-            while (sr !== tr || sc !== tc) {
-                robot_route.push([sr, sc]);
-                const [nr, nc] = next(sr, sc, tr, tc);
-                sr = nr;
-                sc = nc;
+    const map = new Map();
+    
+    for (const route of routes) {
+        let time = 0; 
+        if (!map.has(time)) map.set(time, []);
+        
+        let [cr, cc] = points[route.shift() - 1];
+        map.get(time).push([cr, cc]);
+        time++;
+        
+        for (const r of route) {
+            let [nr, nc] = points[r - 1];
+            while (cr !== nr || cc !== nc) {
+                if (!map.has(time)) map.set(time, []);
                 
-                cnt++;
-                maxD = Math.max(maxD, cnt);
-            }
-        }
-        robot_route.push([tr, tc]);
-        robot_routes.push(robot_route);
-    }
-    
-    // 충돌 검사 로직 수정
-    for (let i = 0; i < maxD; i++) {
-        // 각 위치에 있는 로봇 수를 저장하는 맵
-        const positionMap = new Map();
-        
-        for (let j = 0; j < robot_routes.length; j++) {
-            // 로봇이 해당 시간에 경로를 완료했으면 건너뛰기
-            if (i >= robot_routes[j].length) continue;
-            
-            const [r, c] = robot_routes[j][i];
-            const key = `${r},${c}`;
-            
-            if (!positionMap.has(key)) {
-                positionMap.set(key, 1);
-            } else {
-                positionMap.set(key, positionMap.get(key) + 1);
-            }
-        }
-        
-        // 각 위치별로 2대 이상의 로봇이 있는지 확인하고 위험 상황 카운트
-        for (const count of positionMap.values()) {
-            if (count >= 2) {
-                answer++;
+                if (cr !== nr) {
+                    const dir = cr > nr ? -1 : 1;
+                    cr += dir;
+                } else if (cc !== nc) {
+                    const dir = cc > nc ? -1 : 1;
+                    cc += dir;
+                }
+                
+                map.get(time).push([cr, cc]);
+                time++;
             }
         }
     }
     
-    function next(r, c, nr, nc) {
-        if (r !== nr) return r > nr ? [r - 1, c] : [r + 1, c];
-        if (c !== nc) return c > nc ? [r, c - 1] : [r, c + 1];
-        return [r, c];
+    for (const coor of map.values()) {
+        const cntmap = new Map();
+        for (const c of coor) {
+            const key = `${c[0]} ${c[1]}`;
+            if (!cntmap.has(key)) cntmap.set(key, {cnt: 0});
+            else cntmap.get(key).cnt++;
+        }
+        
+        for (const v of cntmap.values()) {
+            const { cnt } = v;
+            if (cnt > 0) answer++;
+        }
     }
     
     return answer;
