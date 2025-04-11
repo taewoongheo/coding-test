@@ -9,7 +9,6 @@ function solution(triangle) {
             dp[j + 1] = Math.max(dp[j] + triangle[i + 1][j + 1], dp[j + 1]);
             dp[j] += triangle[i + 1][j];
         }
-
     }
     
     return Math.max(...dp);
