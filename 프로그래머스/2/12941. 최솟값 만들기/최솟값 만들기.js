@@ -1,10 +1,6 @@
 function solution(A,B){
-
-    A = A.sort((a, b) => a - b);
-    B = B.sort((a, b) => b - a);
+    const sortA = A.sort((a, b) => a - b);
+    const sortB = B.sort((a, b) => b - a);
     
-    return A.reduce((acc, cur, idx) => {
-        acc += A[idx] * B[idx];
-        return acc;
-    }, 0);
+    return sortA.reduce((acc, cur, idx) => acc + cur * sortB[idx], 0);
 }
