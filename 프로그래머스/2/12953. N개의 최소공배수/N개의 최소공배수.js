@@ -1,23 +1,18 @@
 function solution(arr) {
     
-    const max = Math.max(...arr);
-    
-    let ans = max;
-    while (true) {
-        let flag = true;
-        for (let i = 0; i < arr.length; i++) {
-            if (ans % arr[i] === 0) {
-                continue;
-            }
-            
-            flag = false;
-            break;
+    const gcm = (a, b) => {
+        if (!b) {
+            return a;
         }
         
-        if (flag) break;
-        
-        ans++;
+        return gcm(b, a % b);
     }
     
-    return ans;
+    const lcm = (a, b) => {
+        return (a * b) / gcm(a, b);
+    }
+    
+    return arr.reduce((a, b) => 
+        lcm(a, b)
+    )
 }
