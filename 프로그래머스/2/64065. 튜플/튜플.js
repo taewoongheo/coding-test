@@ -1,22 +1,36 @@
 function solution(s) {
+    let ans = [];
     
-    s = s.substring(2, s.length - 2);
-    s = s.replace(/{/g,'');
-    let sarr = s.split('},').map((el) => el.split(',').map(Number));
-    sarr = sarr.sort((a, b) => a.length - b.length);
-    
-    const answer = Array.from({length: sarr[sarr.length - 1].length}, () => 0);
-
-    answer[0] = sarr[0][0];
-    let idx = 1;
-    for (let i = 1; i < sarr.length; i++) {
-        const size = sarr[i].length;
-        for (let j = 0; j < size; j++) {
-            if (!answer.includes(sarr[i][j])) answer[idx++] = sarr[i][j];
-        }    
+    const strArr = s.split(',');
+    const arr = [];
+    let stack = [];
+    for (let i = 0; i < strArr.length; i++) {
+        const char = strArr[i];
+        const p1 = char.replaceAll(/{/g, '');
+        
+        if (p1.includes('}')) {
+            const p2 = p1.replaceAll(/}/g, '');
+            arr.push([...stack, p2]);
+            stack = [];
+            continue;
+        }
+        
+        stack.push(p1);
     }
     
-    // console.log(answer);
+    arr.sort((a, b) => a.length - b.length);
     
-    return answer;
+    const set = new Set();
+    for (let i = 0; i < arr.length; i++) {
+        const str = arr[i];
+        
+        for (let j = 0; j < str.length; j++) {
+            if (!set.has(str[j])) {
+                set.add(str[j]);
+                ans.push(Number(str[j]));
+            }
+        }
+    }
+    
+    return ans;
 }
