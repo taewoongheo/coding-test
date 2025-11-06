@@ -1,11 +1,21 @@
 function solution(s) {
-    var answer = [0, 0];
-    
-    while (s !== '1') {
-        answer[0]++;
-        answer[1] += (s.match(/0/g) || []).length;
-        s = s.replace(/0/g, "").length.toString(2);
+    const t = (str) => {
+        const zcnt = str.matchAll(/0/g);
+        
+        const nstr = str.replace(/0/g, '').length.toString(2);
+        
+        return [nstr, [...zcnt].length]
     }
     
-    return answer;
+    let ans = 0;
+    let cnt = 0;
+    let str = s;
+    while (str !== '1') {
+        const [nstr, zcnt] = t(str);
+        str = nstr;
+        ans++;
+        cnt += zcnt;
+    }
+    
+    return [ans, cnt];
 }
