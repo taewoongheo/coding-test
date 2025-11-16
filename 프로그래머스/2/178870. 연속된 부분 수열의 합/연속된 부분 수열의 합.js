@@ -1,32 +1,23 @@
-// 두 인덱스 사이에서 합이 k 인 가장 짧은 배열 찾기
-// dp?
-//  잇기 또는 끊기
-//  근데 뒤에 나올 수가 뭔지 알아야 잇거나 끊을 수 있음
-//      현재 부분문제가 독립적이지 않으므로 dp 는 안됨
-// 투 포인터
-//  sum < k; e++
-//  sum > k; s++
-
 function solution(sequence, k) {
-    var answer = [0, Infinity];
-    
     let s = 0;
     let e = 0;
-    let sum = 0;
     
-    while (e <= sequence.length) {
-        if (sum > k) {
-            sum -= sequence[s++];
-        } else if (sum < k) {
-            sum += sequence[e++];
+    const ans = [0, 1000000];
+    
+    let num = sequence[s];
+    while (s <= e) {
+        if (num < k && e < sequence.length - 1) {
+            num += sequence[++e];
+        } else if (num > k) {
+            num -= sequence[s++];
         } else {
-            if (e - s < answer[1] - answer[0]) {
-                answer = [s, e];
+            if (num === k && e - s < ans[1] - ans[0]) {
+                ans[0] = s;
+                ans[1] = e;
             }
-            sum += sequence[e++];
+            num -= sequence[s++];
         }
     }
     
-    answer[1]--;
-    return answer;
+    return ans;
 }
