@@ -1,23 +1,33 @@
+// 각 자리수가 차례대로 0이 되도록 하면 됨
+
 function solution(storey) {
-    var answer = 0;
+    let cnt = 0;
     
-    while (storey) {
-        const cur = storey % 10;
-        storey = Math.floor(storey / 10);
-        
-        if (cur < 5) {
-            answer += cur;
-        } else if (cur > 5) {
-            answer += (10 - cur);
-            storey += 10;
-        } else {
-            const next = storey % 10;
-            answer += cur;
-            if (next > 5) {
-                storey += 10;
-            }
+    const s = 10;
+    
+    const q = [{cnt: 0, num: storey}];
+    
+    let min = Infinity;
+    while (q.length) {
+        let {cnt, num} = q.shift();
+        if (num === 0) {
+            min = Math.min(cnt, min);
+            continue;
         }
+        
+        const div = num % s;
+        num = Math.floor(num / s);
+        
+        if (div > 5) {
+            q.push({cnt: cnt + (10 - div), num: num + 1});
+        } else if (div === 5) {
+            q.push({cnt: cnt + (10 - div), num: num + 1});
+            q.push({cnt: cnt + div, num});
+        } else {
+            q.push({cnt: cnt + div, num});
+        }
+
     }
     
-    return answer;
+    return min;
 }
