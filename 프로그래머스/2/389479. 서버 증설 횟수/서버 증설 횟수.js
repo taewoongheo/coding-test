@@ -1,30 +1,32 @@
-// 문제: 총 서버 증설 횟수 구하기
-// 서버 객체를 만들어 놓고, 그 수와 비교하면서 서버를 추가
+// server: {time: number}
+// 현재 사용자 수와 m을 나눈 몫과 servers 배열 길이 비교
+// servers 배열돌면서 time 하나씩 증가 + 부족한 만큼 추가
+//  k 지나면 서버 없애기
+// 부족한만큼 카운트 증가
 
 function solution(players, m, k) {
-    var answer = 0;
-    
+    let ans = 0;
     let servers = [];
+    
     for (const player of players) {
-        const need = Math.floor(player / m);
-        const servercnt = servers.length;
-        
-        if (need > servercnt) {
-            for (let j = 0; j < need - servercnt; j++) {
-                servers.push({timer: k});
-                answer++;
-            }
-        }
-        
-        const newServerStatus = [];
+        const newServers = [];
         for (const server of servers) {
-            server.timer--;
-            if (server.timer === 0) continue;
-            newServerStatus.push(server);
-        }
+            let { time } = server;
+            time++;
+            if (time > k) continue;
+            newServers.push({time});
+        };
+        servers = [...newServers];
         
-        servers = [...newServerStatus];
+        const need = Math.floor(player / m);
+        const diff = Math.max(need - servers.length, 0);
+        
+        ans += diff;
+        
+        for (let i = 0; i < diff; i++) {
+            servers.push({time: 1});
+        }
     }
     
-    return answer;
+    return ans;
 }
