@@ -1,57 +1,58 @@
-// 각 order 별 가능한 조합을 모두 구한 뒤, 다른 order 의 조합에 2번 이상 포함되는지 확인
-//  최악의 경우: orders 길이=20, order길이=10, course=10
-//      order 하나 당 가능한 조합 수 = (10!/2!8! + 10!/3!7! + 10!/4!6! + ... + 10!/10!) x 10 x 20 = 202600 시간초과 x
+// 모든 order 를 오름차순 정렬
+// course 크기별로 orders 에서 가능합 조합을 생성 및 카운트
+// set 에 조합=키 를 저장
+// course 별로 가장 많은 메뉴를 선택
 
 function solution(orders, course) {
-    const dfs = (depth, arr, str, s) => {
-        if (str.length === depth) return [str];
+    orders = orders.map(el => el.split('').sort((a, b) => a.localeCompare(b)).join(''));
+
+    const getCombinations = (arr, selectedNumber) => {
+        if (selectedNumber === 1) return arr.map(el => [el]);
         
         const res = [];
-        for (let i = s; i < arr.length; i++) {
-            res.push(...dfs(depth, arr, str + arr[i], i + 1));
-        }
-        
+        arr.forEach((fixed, index, origin) => {
+            const rest = origin.slice(index + 1);
+            const combi = getCombinations(rest, selectedNumber - 1);
+            const attached = combi.map(el => [fixed, ...el]);
+            res.push(...attached);
+        });
         return res;
     }
     
-    const lenMap = course.reduce((obj, c) => {
-        obj[c] = new Set();
-        return obj;
-    }, {});
-    const cntMap = new Map();
-    
-    for (const order of orders) {
-        const arr = order.split('').sort();
-        for (const c of course) {
-            const combinations = dfs(c, arr, '', 0);
-            for (const combi of combinations) {
-                lenMap[combi.length].add(combi);
-                const cnt = cntMap.get(combi);
-                if (!cnt) {
-                    cntMap.set(combi, 1);
-                    continue;
-                }
-                cntMap.set(combi, cnt + 1);
-            }
-        }
-    }
-    
     const res = [];
+    
     for (const c of course) {
-        const arr = lenMap[c];
-        let max = 0;
-        let maxArr = [];
-        for (const str of arr) {
-            const cnt = cntMap.get(str);
-            if (cnt < 2) continue;
-            if (cnt === max) maxArr.push(str);
-            else if (cnt > max) {
-                max = cnt;
-                maxArr = [str];
+        const obj = {};
+        const keys = new Set();
+        
+        for (const o of orders) {
+            const combinations = getCombinations(o.split(''), c);
+            
+            for (const combi of combinations) {
+                const key = combi.join('');
+                keys.add(key);
+                
+                if (obj[key]) obj[key]++;
+                else obj[key] = 1;
             }
         }
-        res.push(...maxArr);
+        
+        let temp = [];
+        let max = 0;
+        for (const key of keys) {
+            const cnt = obj[key];
+            if (cnt < 2) continue;
+            
+            if (cnt > max) {
+                max = cnt;
+                temp = [key];     
+            } else if (cnt === max) {
+                temp.push(key);
+            }
+        }
+        
+        res.push(...temp);
     }
-    
-    return res.sort();
+
+    return res.sort((a, b) => a.localeCompare(b));
 }
