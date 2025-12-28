@@ -1,36 +1,41 @@
-// 문제요약: 하노이 탑을 1번기둥에서 3번기둥으로 옮기는 방법 구하기
-// 입력: 원판의 개수 n
-// 출력: 옮기는 방법의 순서 2차원 배열
-// 조건: 1<=n<=15
-// 알고리즘 선택: 재귀
-//  2개의 원판을 옮기려면?
-//      1번:1->2, 2번:1->3, 1번:2->3
-//  3개의 원판을 옮기려면?
-//      1번:1->3, 2번:1->2, 1번:3->2, 3번:1->3, 1번:2->1, 2번:2->3, 1번:1->3
-//  규칙은 n번째 원판을 1->3번으로 옮기려면, n-1개의 원판이 모두 2번기둥에 있어야 한다는 것
-//  따라서 n개의 원판을 1->3으로 옮기려면 -> n-1번 원판을 1->2번으로 옮겨야 함 -> n-2번 원판이 나머지 하나의 기둥에 있어야 함 -> n-3번 원판이 나머지 하나의 기둥에 있어야 함 => 재귀
-// 부분문제 분할:
-//  move(n, from, to, other): n을 from에서 other을 거쳐 to로 이동
-//      현재 원판 n을 from에서 to로 바로 옮길 수 없음. 위에 n-1개의 원판이 모두 other에 있어야하기 때문
-//      move(n - 1, from, other, to): n-1번 원판을 2번째로 옮기려고 함. 
-//          그런데 n - 2번 원판이 모두 other에 있어야함 
-//              ...
-//                  만약 1번 원판인 경우, other로 바로 이동
+// 재귀함수
+//  크게 두 가지 단계
+//      n 번째 원판을 원하는 칸으로 옮김
+//      그 위의 원판들을 n 번째 원판 위로 옮김
+// 동작
+//  자신보다 작은 원판들(n-1, n-2, ...)을 나머지 위치로 옮김
+//  자신이 옮기고자 하는 위치로 이동
+//  자신보다 작은 원판들을 다시 내 위치로 옮김
+// 나머지위치 구하기=자신의 위치와 상위 원판이 옮기고자 하는 위치만 알면 결정가능
+
+// func(n, cur, next): n=원판, cur=내위치, next=옮기고자하는 위치
+//  if (n === 0) return
+//  dnext=getNext(cur, next);
+//  func(n-1, cur, dnext); // 자신보다 작은 원판들을 옮기기
+//  ans.push([cur, next]); // 기록
+//  func(n-1, dnext, cur); // 자신보다 작은 원판들을 자신 위에 쌓기
 
 function solution(n) {
-    const answer = [];
     
-    hanoi(n, 1, 3, 2);
+    const ans = [];
     
-    function hanoi(n, from, to, other) {
-        if (n === 1) {
-            answer.push([from, to]);
-            return;
-        }
-        hanoi(n - 1, from, other, to); //n-1원판을 2번째 기둥으로 옮김
-        answer.push([from, to]); //n번째 원판 옮김
-        hanoi(n - 1, other, to, from); //다시 쌓음
+    function hanoi(n, cur, next) {
+        if (n === 0) return;
+        
+        const dnext = getNext(cur, next);
+        hanoi(n - 1, cur, dnext);
+        ans.push([cur, next]);
+        hanoi(n - 1, dnext, next);
     }
     
-    return answer;
+    function getNext(c1, c2) {
+        const arr = [c1, c2];
+        if (!arr.includes(1)) return 1;
+        else if (!arr.includes(2)) return 2;
+        return 3;
+    }
+    
+    hanoi(n, 1, 3);
+    
+    return ans;
 }
