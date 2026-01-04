@@ -1,43 +1,46 @@
-// 문제: 제한시간 내에 모든 퍼즐을 해결할 수 있는 숙련도의 최솟값 구하기
-// diffs 길이 <= 300000, limit <= 10^15, diffs[i]=100000
-//  이진탐색?
-//      숙련도 범위를 min diffs ~ max diffs 사이에서 결정
-//      만약 limit 을 넘치면 level 을 올림, limit 을 넘치지 않으면 갱신하고 level 내림
-
+// 최대 숙련도는 최대 난이도? 로 가정하면 100000
+//  30000000000 => 시간초과
+// 이진탐색
+//  log(100000) x 300000 = 1500000 가능
 
 function solution(diffs, times, limit) {
-    var answer = Infinity;
     
-    let s = 1, e = diffs.reduce((e, cur) => Math.max(e, cur), 0);
+    if (diffs.length === 1) return diffs[0];
+
+    let ans = Infinity;
+    
+    let s = 0; 
+    let e = 100000
     
     while (s <= e) {
-        const m = Math.floor((s + e) / 2);
-        
-        if (cal(m)) {
-            answer = Math.min(answer, m);
-            e = m - 1;
-        } else s = m + 1;
+        const mid = Math.floor((s + e) / 2);
+        const res = result(mid);
+        if (res <= limit) {
+            ans = Math.min(mid, ans);
+            e = mid - 1;
+        } else {
+            s = mid + 1;
+        }
     }
     
-    function cal(lvl) {
-        let total = 0;
+    function result(level) {
+        let res = times[0];
         
-        let prev = 0;
-        for (let i = 0; i < diffs.length; i++) {
+        for (let i = 1; i < diffs.length; i++) {
             const diff = diffs[i];
-            const time = times[i];
-            if (lvl >= diff) total += time;
-            else {
-                const cnt = diff - lvl;
-                total += (prev + time) * cnt + time;
+            const cur = times[i];
+            const prev = times[i - 1];
+            
+            if (level >= diff) {
+                res += cur;
+                continue;
             }
-            prev = time;
+            
+            res += ((diff - level) * (cur + prev)) + cur;
         }
         
-        if (total <= limit) return true;
-            
-        return false;
+        return res;
     }
     
-    return answer;
+    return ans !== 0 ? ans : 1;
 }
