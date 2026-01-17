@@ -1,96 +1,103 @@
 function solution(storage, requests) {
-    // 1. 컨테이너 개수 카운트 (초기 컨테이너 수)
-    let answer = 0;
-    for (let i = 0; i < storage.length; i++) {
-        for (let j = 0; j < storage[i].length; j++) {
-            answer++;
-        }
-    }
+    const map = storage.map(el => el.split(''));
     
-    // 2. 주변에 패딩을 추가한 배열 생성
-    const rows = storage.length;
-    const cols = storage[0].length;
-    const paddedRows = rows + 2;
-    const paddedCols = cols + 2;
+    const rsize = map.length;
+    const csize = map[0].length;
     
-    // 컨테이너 종류 저장 배열
-    const containers = Array.from({length: paddedRows}, () => 
-        Array.from({length: paddedCols}, () => '0')
-    );
+    const removed = new Set();
+    const getKey = (r, c) => `${r}-${c}`;
     
-    // 컨테이너 존재 여부 배열
-    const exist = Array.from({length: paddedRows}, (_, i) => 
-        Array.from({length: paddedCols}, (_, j) => 
-            i === 0 || i === paddedRows-1 || j === 0 || j === paddedCols-1 ? false : true
-        )
-    );
+    let forkLift = new Set();
     
-    // 실제 데이터 채우기
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            containers[i+1][j+1] = storage[i][j];
-        }
-    }
-    
-    // 방향 벡터
-    const dr = [-1, 1, 0, 0];
-    const dc = [0, 0, -1, 1];
-    
-    // 3. 요청 처리
     for (const req of requests) {
-        const removed = []; // 제거할 컨테이너 위치
-        
+        const b = req.charAt(0);
         if (req.length === 1) {
-            // 지게차 사용 (외부에서 접근 가능한 컨테이너만)
-            const queue = [];
-            const visited = Array.from({length: paddedRows}, () => 
-                Array.from({length: paddedCols}, () => false)
-            );
+            // 지게차
             
-            // 시작점 (외부 지점)
-            queue.push([0, 0]);
-            visited[0][0] = true;
-            
-            while (queue.length > 0) {
-                const [r, c] = queue.shift();
-                
-                for (let i = 0; i < 4; i++) {
-                    const nr = r + dr[i];
-                    const nc = c + dc[i];
-                    
-                    if (nr < 0 || nr >= paddedRows || nc < 0 || nc >= paddedCols) continue;
-                    if (visited[nr][nc]) continue;
-                    
-                    visited[nr][nc] = true;
-                    
-                    if (exist[nr][nc] && containers[nr][nc] === req) {
-                        // 요청된 컨테이너 종류와 일치하면 제거 목록에 추가
-                        removed.push([nr, nc]);
-                    } else if (!exist[nr][nc]) {
-                        // 컨테이너가 없는 공간은 계속 탐색
-                        queue.push([nr, nc]);
-                    }
-                }
+            // top
+            for (let i = 0; i < csize - 1; i++) {
+                if (forkLift.has(getKey(0, i))) continue;
+                doForkLift(0, i, b);
             }
-        } else {
-            // 크레인 사용 (모든 해당 종류 컨테이너)
-            const type = req[0]; // 두 글자인 경우 첫 글자가 컨테이너 종류
             
-            for (let r = 1; r < paddedRows - 1; r++) {
-                for (let c = 1; c < paddedCols - 1; c++) {
-                    if (exist[r][c] && containers[r][c] === type) {
-                        removed.push([r, c]);
+            // right
+            for (let i = 0; i < rsize - 1; i++) {
+                if (forkLift.has(getKey(i, csize - 1))) continue;
+                doForkLift(i, csize - 1, b);
+            }
+            
+            // bottom
+            for (let i = csize - 1; i >= 1; i--) {
+                if (forkLift.has(getKey(rsize - 1, i))) continue;
+                doForkLift(rsize - 1, i, b);
+            }
+            
+            // left
+            for (let i = rsize - 1; i >= 1; i--) {
+                if (forkLift.has(getKey(i, 0))) continue;
+                doForkLift(i, 0, b);
+            }
+            
+            forkLift.forEach(el => removed.add(el));
+            forkLift = new Set();
+        } else {
+            // 크레인
+            for (let i = 0; i < rsize; i++) {
+                for (let j = 0; j < csize; j++) {
+                    const el = map[i][j];
+                    const key = getKey(i, j);
+                    if (!removed.has(key) && el === b) {
+                        removed.add(key);
                     }
                 }
             }
         }
+    }
+
+    function doForkLift(r, c, b) {
+        const key = getKey(r, c);
+        if (!removed.has(key)) {
+            // 제거되지 않았다면 일치하는지만 검사
+            const el = map[r][c];
+            if (el === b) {
+                forkLift.add(key);
+            } 
+        } else {
+            // 제거됨, bfs 시작
+            bfs(r, c, b);
+        }
+    }
+
+    function bfs(r, c, b) {
+        const q = [[r, c]];
+        const v = new Set();
+        v.add(getKey(r, c));
         
-        // 컨테이너 제거 및 상태 업데이트
-        for (const [r, c] of removed) {
-            exist[r][c] = false;
-            answer--;
+        const m = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+        
+        while (q.length) {
+            const [r, c] = q.pop();
+            for (let i = 0; i < 4; i++) {
+                const nr = r + m[i][0];
+                const nc = c + m[i][1];
+                
+                const key = getKey(nr, nc);
+                if (nr < 0 || nr >= rsize || nc < 0 || nc >= csize || v.has(key)) continue;
+                
+                // 빈 칸이면 담고, 빈 칸이 아니면 검사만
+                v.add(key);
+                if (removed.has(key)) {
+                    q.push([nr, nc]);
+                    forkLift.add(key);
+                } else {
+                    const el = map[nr][nc];
+                    if (el === b) {
+                        forkLift.add(key);
+                    }
+                }
+            }
         }
     }
     
-    return answer;
+    return rsize * csize - removed.size;
 }
