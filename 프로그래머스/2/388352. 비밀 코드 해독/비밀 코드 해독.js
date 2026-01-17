@@ -1,51 +1,46 @@
-// 문제: 비밀코드로 가능한 조합의 개수를 구하기
-// 오름차순 조합을 모두 구한 뒤, q, ans 와 일치하는 조합의 개수를 세기
-// 5자리, 1~30 => 30!/25!x5!
+// 완전탐색으로 뚫으면?
+//  항상 오름차순 정렬이기 때문에 조합임
+//  nCk=n!/(k!(n-k)!)=30!/(25!5!) = 142506
+// 모든 조합에 대해 입력한 정수들을 각각 검사한다면
+//  142506x10x5=가능
 
 function solution(n, q, ans) {
-    var answer = 0;
+    let result = 0;
     
-    const combinations = getCombination(Array.from({length: n}, (_, idx) => idx + 1), 5);
+    const arr = Array.from({length: n}, (_, i) => i + 1);
     
-    for (let i = 0; i < combinations.length; i++) {
-        let flag = true;
+    const getCombinations = (arr, selectedIdx) => {
+        if (selectedIdx === 1) return arr.map(el => [el]);
         
-        for (let j = 0; j < q.length; j++) {
-            if (!check(combinations[i], q[j], ans[j])) {
-                flag = false;
-                continue;
-            }
-        }
-        
-        if (flag) answer++;
-    }
-    
-    function check(combi, q, ans) {
-        let cnt = 0; 
-        
-        for (let i = 0; i < q.length; i++) {
-            if (combi.includes(q[i])) cnt++;
-        }
-        
-        if (cnt === ans) return true;
-        
-        return false;
-    }
-    
-    function getCombination(arr, cnt) {
         const res = [];
-        
-        if (cnt === 1) return arr.map(el => [el]);
-        
-        arr.forEach((item, idx, origin) => {
-            const rest = arr.slice(idx + 1);
-            const combinations = getCombination(rest, cnt - 1);
-            const attached = combinations.map(combi => [item, ...combi]);
+        arr.forEach((fixed, index, origin) => {
+            const rest = origin.slice(index + 1);
+            const combi = getCombinations(rest, selectedIdx - 1);
+            const attached = combi.map(el => [fixed, ...el]);
             res.push(...attached);
-        });
+        })
         
         return res;
     }
     
-    return answer;
+    const combinations = getCombinations(arr, 5);
+    
+    for (const combi of combinations) {
+        let s = true;
+        
+        for (let i = 0; i < q.length; i++) {
+            let cnt = 0;
+            for (let j = 0; j < 5; j++) {
+                if (combi.includes(q[i][j])) cnt++;
+            }
+            if (cnt !== ans[i]) {
+                s = false;
+                break;
+            }
+        }
+        
+        if (s) result++;
+    }
+    
+    return result;
 }
