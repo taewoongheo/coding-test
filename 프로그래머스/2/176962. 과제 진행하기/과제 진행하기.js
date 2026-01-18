@@ -1,61 +1,52 @@
-// 규칙: 
-//  과제는 시각이 되면 바로 시작, 기존에 진행중인 과제가 있으면 그걸 멈춤
-//  현재 시각에 할 거 없으면 미뤄둔 과제 진행(최근에 멈춘 것부터)
-// 문제 요약: 과제가 끝난 순서대로 반환
-// 알고리즘 선택: 
-//  구현
-//  시작시각을 기준으로 정렬
-//      분 단위로 변경
-//  stop 배열을 만들고, 여기에 첫번째과제 넣고 시작
-//  time=첫번째과제 시작 시각
-//  for 나머지 과제들:
-//      다음 과제의 시작시각과 현재시각 차이
-//      for stop:
-//          차이를 모두 소모할 때까지 stop 배열 갱신
-//      stop 배열 업데이트
-//   stop에 남아있는 순서대로 모두 출ㄹ력
+// 시간을 분 단위로 변환해서 정렬
+// 차례대로 루프
+//  현재 진행중인 과제를 바로 끝낼 수 있을지 알아야됨 + 시간이 남으면 안끝난 과제를 마저 진행해야됨
+//      이걸 알려면 다음 과제가 시작되는 시각을 알아야됨
+//  현재 과제의 playtime 와 다음과제시각-현재과제시각 의 차를 구함 = diff
+//      diff >= playtime 이라면 result 에 바로 담고, 남은 시간만큼 안끝난 과제를 진행
+//          사용할 수 있는 시간인 diff - playtime 에서 차례대로 사용
+//      diff < playtime 이라면 playtime -= diff 후 스택에 담음
 
 function solution(plans) {
-    var answer = [];
-    
-    const timeToMinute = (time) => {
-        let minute = 0; 
-        
-        const [h, m] = time.split(':').map(Number);
-        minute += h * 60;
-        minute += m;
-        
-        return minute;
+    const timeToMin = (time) => {
+        const [hour, minute] = time.split(':').map(Number);
+        return hour * 60 + minute;
     }
     
-    plans = plans.map(el => [el[0], timeToMinute(el[1]), el[2]])
-                .sort((a, b) => b[1] - a[1]);
-    let stop = [plans.pop()];
-    let time = stop[0][1];
+    plans = plans.map(el => [el[0], timeToMin(el[1]), Number(el[2])]).sort((a, b) => a[1] - b[1]);
     
-    while (plans.length) {
-        const next = plans.pop();
+    const result = [];
+    const stack = []; // [name, playtime]
+    for (let i = 0; i < plans.length - 1; i++) {
+        const [name, start, playtime] = plans[i];
+        const nextStart = plans[i + 1][1];
         
-        let diff = next[1] - time;
-        time = next[1];
-        const newStop = [next];
-        for (let i = 0; i < stop.length; i++) {
-            const cur = stop[i];
-            if (diff >= cur[2]) {
-                diff -= cur[2];
-                answer.push(cur[0]);
-            } else {
-                cur[2] -= diff;
-                diff = 0;
-                newStop.push(cur);
+        let timeLeft = nextStart - start;
+        if (playtime <= timeLeft) {
+            // 다 끝내고도 시간이 남음
+            
+            result.push(name);
+            timeLeft -= playtime;
+            while (stack.length) {
+                const [rName, rPlaytime] = stack.pop();
+                if (rPlaytime <= timeLeft) {
+                    timeLeft -= rPlaytime;
+                    result.push(rName);
+                } else {
+                    stack.push([rName, rPlaytime - timeLeft]);
+                    break;
+                }
             }
+        } else {
+            // 다 못끝냄
+            stack.push([name, playtime - timeLeft]);
         }
-        stop = [...newStop];
     }
     
-    for (let i = 0; i < stop.length; i++) {
-        answer.push(stop[i][0]);
+    result.push(plans.at(-1)[0]);
+    while (stack.length) {
+        result.push(stack.pop()[0]);
     }
     
-    return answer;
+    return result;
 }
