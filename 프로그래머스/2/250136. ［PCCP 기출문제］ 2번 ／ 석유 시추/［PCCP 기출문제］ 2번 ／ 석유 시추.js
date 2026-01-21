@@ -1,69 +1,120 @@
-// 시간복잡도?
+// 칸 하나 잡고 방문하지 않은 칸이면 bfs
+// 석유 덩어리마다 라벨을 붙임
+// 맵이 완성되면 열을 하나씩 검사해서 포함된 라벨을 찾고, 각 라벨마다 석유 덩어리 크기를 계산해서 갱신
+//  500x500x500=125000000 => 시간초과
+// 행을 기준으로 방문하면 굳이 마지막에 한번 더 루프를 돌 필요가 없음
+class Item {
+    constructor(r, c) {
+        this.r = r;
+        this.c = c;
+        this.next = null;
+    }
+}
 
-// 문제요약: 하나의 시추관으로 뽑을 수 있는 가장 많은 석유량 구하기
-// 알고리즘 선택: 
-//  bfs가 가장 먼저 떠오름. 열을 하나씩 검사하면서 석유를 만나면 bfs 돌려서 개수 구하기
-//  최대크기는 2500
-//  근데 이미 추출가능한 석유들을 중복해서 탐색하고 있음
-//  map으로 각 석유들과 그 양을 결정, 그리고 맵에 석유가 있는 곳에 라벨링
-//  열을 검사하면서 뽑은 석유들을 저장, 또 만나면 제낌. 
-// 부분문제 분해: 
-//  idx=2
-//  for i in land.length
-//      for j in land.length
-//          if land[i][j] === 1 이면 탐색해야 됨
-//               cnt = bfs(i, j)
-//          map.set(idx, cnt)
-//  for i in land.length:
-//      total: 총 석유량
-//      for j in land.length:
-//          if land[i][j] !== 0: 석유
-//              if (!v.has(land[i][j])): 아직 탐색하지 않은 석유들
-//                  total += map.get(land[i][j])
-//                  v.add(land[i][j])
-//      answer 갱신
+class Queue {
+    constructor() {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+    }
+
+    push(r, c) {
+        const newItem = new Item(r, c);
+        if (this.length === 0) {
+            this.head = newItem;
+            this.tail = newItem;
+        } else {
+            this.tail.next = newItem;
+            this.tail = newItem;
+        }
+        this.length++;
+    }
+
+    pop() {
+        if (this.length === 0) return null; 
+
+        const ret = this.head;
+        this.head = this.head.next;
+        this.length--;
+
+        if (this.length === 0) {
+            this.tail = null;
+        }
+        
+        return ret;
+    }
+
+    isEmpty() {
+        return this.length === 0;
+    }
+}
 
 function solution(land) {
-    const rows = land.length;
-    const cols = land[0].length;
-    
-    const answer = Array.from({length: cols}, () => 0);
-    
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            
-            if (land[r][c] === 0) continue;
-            
-            let cnt = 1;
-            const vcol = new Set();
-            const q = [];
-            q.push([r, c]);
-            land[r][c] = 0;
-            vcol.add(c);
-            
-            const m = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-            while (q.length) {
-                const [cr, cc] = q.shift();
-                
-                for (let i = 0; i < 4; i++) {
-                    const nr = cr + m[i][0];
-                    const nc = cc + m[i][1];
-                    
-                    if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || land[nr][nc] === 0) continue;
-                    
-                    q.push([nr, nc]);
-                    // v[nr][nc] = true;
-                    land[nr][nc] = 0;
-                    vcol.add(nc);
-                    cnt++;
-                }
-            }
+    let ans = 0;
 
-            for (const col of vcol) {
-                answer[col] += cnt;
+    let oilLabel = 2;
+    
+    // 석유 덩어리
+    const oil = new Map();
+ 
+    // col 마다 포함한 석유 덩어리
+    const co = new Map();
+    
+    const rsize = land.length;
+    const csize = land[0].length;
+    
+    for (let c = 0; c < csize; c++) {
+        let sum = 0;
+        co.set(c + 1, new Set());
+        const set = co.get(c + 1);
+        
+        for (let r = 0; r < rsize; r++) {
+            let label = land[r][c];
+            if (label === 0 || set.has(label)) continue;
+            
+            if (label === 1) {
+                label = oilLabel++;
+                oil.set(label, bfs(r, c, label));
             }
+            
+            set.add(label);
+            sum += oil.get(label);
         }
+        
+        ans = Math.max(sum, ans);
     }
     
-    return Math.max(...answer);
+    function bfs(r, c, label) {
+        const q = new Queue();
+        
+        q.push(r, c);
+        
+        const v = new Set();
+        
+        const getKey = (r, c) => `${r}-${c}`;
+        
+        v.add(getKey(r, c));
+        
+        land[r][c] = label;
+        
+        const m = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+        while (!q.isEmpty()) {
+            const item = q.pop();
+            const {r, c} = item;
+            for (let i = 0; i < 4; i++) {
+                const nr = r + m[i][0];
+                const nc = c + m[i][1];
+                
+                const key = getKey(nr, nc);
+                if (nr < 0 || nr >= rsize || nc < 0 || nc >= csize || v.has(key) || land[nr][nc] === 0) continue;
+                land[nr][nc] = label;
+                v.add(key);
+                q.push(nr, nc);
+            }
+        }
+        
+        return v.size;
+    }
+    
+    return ans;
 }
