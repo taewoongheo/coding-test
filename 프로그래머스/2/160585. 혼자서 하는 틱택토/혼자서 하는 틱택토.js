@@ -1,52 +1,81 @@
-// 문제요약: 규칙을 지켜서 나올 수 있는 틱택토인지 판단
-// 알고리즘 선택: 
-//  규칙이 안되는 경우를 모두 걸러내면 됨
-//  상태: o, x
-//  1. o 개수 < x 개수
-//  2. o 개수 - x 개수 > 1
-//  3. o 승리 && o 개수 - x 개수 !== 1
-//  4. o 승리 && x 승리
-//  5. x 승리 && o 개수 !== x 개수
+// 아예 없는 경우 1 리턴
+// O 의 개수보다 X 의 개수가 많은 경우(X 가 연속으로 두었음)
+// O 개수와 X 의 개수의 차가 2 이상인 경우(두 번 연속 두었음)
+// O 가 이겼을 때 X 의 개수와 O 와 같은 경우(많은 경우는 위에서 걸러짐)
+// X 가 이겼을 때 O 의 개수가 X 와 다른 경우
 
 function solution(board) {
+    const map = board.map(el => el.split(''));
     
-    board = board.map(el => el.split('')).flat();
+    let o = 0, x = 0;
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (map[i][j] === 'O') o++;
+            else if (map[i][j] === 'X') x++;
+        }
+    }
     
-    let oCnt = 0; 
-    let xCnt = 0;
-    board.forEach(el => {
-        if (el === 'O') oCnt++;
-        if (el === 'X') xCnt++;
-    });
+    const isWin = (mark, map) => {
+        let possible = true;
+        
+        // 가로
+        for (let i = 0; i < 3; i++) {
+            possible = true;
+            for (let j = 0; j < 3; j++) {
+                if (map[i][j] !== mark) {
+                    possible = false;
+                    break;
+                }
+            }
+            
+            if (possible) return true;
+        }
+        
+        // 세로
+        for (let i = 0; i < 3; i++) {
+            possible = true;
+            for (let j = 0; j < 3; j++) {
+                if (map[j][i] !== mark) {
+                    possible = false;
+                    break;
+                }
+            }
+            
+            if (possible) return true;
+        }
+        
+        // 왼쪽 대각선
+        possible = true;
+        for (let i = 0; i < 3; i++) {
+            if (map[i][i] !== mark) {
+                possible = false;
+                break;
+            }
+        }
+        if (possible) return true;
+        
+        // 오른쪽 대각선
+        possible = true;
+        for (let i = 0; i < 3; i++) {
+            if (map[i][2 - i] !== mark) {
+                possible = false;
+                break;
+            }
+        }
+        if (possible) return true;
+        
+        return false;
+    }
     
-    if (oCnt < xCnt) return 0;
-    if (oCnt - xCnt > 1) return 0;
+    if (o === 0 && x === 0) return 1;
     
-    const lines = [
-        [0, 1, 2], 
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7], 
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
-
-    const isOWin = lines.reduce((ret, item) => {
-        const res = board[item[0]] === 'O' && board[item[1]] === 'O' && board[item[2]] === 'O';
-        if (res) return true;
-        return ret
-    }, false);
-    const isXWin = lines.reduce((ret, item) => {
-        const res = board[item[0]] === 'X' && board[item[1]] === 'X' && board[item[2]] === 'X';
-        if (res) return true;
-        return ret
-    }, false);
+    if (x > o) return 0;
     
-    if (isOWin && oCnt - xCnt !== 1) return 0;
-    if (isOWin && isXWin) return 0;
-    if (isXWin && oCnt !== xCnt) return 0;
+    if (Math.abs(o - x) >= 2) return 0;
+    
+    if (isWin('O', map) && o === x) return 0;
+    
+    if (isWin('X', map) && o !== x) return 0;
     
     return 1;
 }
